@@ -3,15 +3,15 @@ import 'package:barbergofe/routes/route_names.dart';
 import 'package:barbergofe/views/auth/SignUp_page.dart';
   import 'package:barbergofe/views/not_found_page.dart';
   import 'package:go_router/go_router.dart';
-  import 'package:barbergofe/views/auth/login_page.dart';
+  import 'package:barbergofe/views/auth/SignIn_page.dart';
   import 'package:barbergofe/views/intro/Screen_intro.dart';
   final GoRouter appRouter = GoRouter(
       initialLocation: RouteNames.getStarted,
       routes:[
         GoRoute(
-            path:RouteNames.login,
-            name: 'login',
-            builder: (context, state) => const LoginPage(),
+            path:RouteNames.signin,
+            name: 'signin',
+            builder: (context, state) => const SignInPage(),
         ),
         GoRoute(
           path: '/',
@@ -24,14 +24,16 @@ import 'package:barbergofe/views/auth/SignUp_page.dart';
           builder: (context, state) => const SignupPage(),
         ),
       ],   errorBuilder: (context, state) => const NotFoundPage(),
-      redirect: (context, state) async{
-        //kiểm tra intro
-        bool seen =await IntroService.isIntroSeen();
-        //nếu chưa xem thì chuyển sang intro
-        if(!seen){
+      redirect: (context, state) async {
+        bool seen = await IntroService.isIntroSeen();
+
+        // Nếu chưa xem intro, chuyển đến trang intro
+        if (!seen && state.uri.toString() != RouteNames.getStarted) {
           return RouteNames.getStarted;
         }
-        return RouteNames.signup;
+
+        // Nếu đã xem intro, không redirect, giữ nguyên route
+        return null;
       }
 
   );
