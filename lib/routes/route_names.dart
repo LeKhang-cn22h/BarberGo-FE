@@ -7,4 +7,5 @@ class RouteNames{
   static const profile = '/profile';
   static const otp='/otp';
   static const forgot='/forgot';
+  static const succes='/succes';
 }

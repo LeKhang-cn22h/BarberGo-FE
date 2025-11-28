@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 class ContentForgotPass extends StatelessWidget {
   const ContentForgotPass({super.key});
 
@@ -49,7 +50,9 @@ class ContentForgotPass extends StatelessWidget {
               SizedBox(height: 16),
               Center(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    context.goNamed('succes');
+                  },
                   child: Text(
                     "Gửi",
                   ),
