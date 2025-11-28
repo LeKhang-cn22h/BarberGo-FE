@@ -3,6 +3,7 @@ import 'package:barbergofe/routes/route_names.dart';
 import 'package:barbergofe/views/OTP/page/otp_page.dart';
 import 'package:barbergofe/views/auth/SignUp_page.dart';
 import 'package:barbergofe/views/forgotPass/forgotPass_page.dart';
+import 'package:barbergofe/views/newPass/newPass_page.dart';
   import 'package:barbergofe/views/not_found_page.dart';
 import 'package:barbergofe/views/succes/succes_page.dart';
   import 'package:go_router/go_router.dart';
@@ -39,7 +40,12 @@ import 'package:barbergofe/views/succes/succes_page.dart';
         GoRoute(path: RouteNames.succes,
         name: 'succes',
             builder: (context, state) => const SuccesPage()
+        ),
+        GoRoute(path: RouteNames.newPass,
+            name: 'succes',
+            builder: (context, state) => const NewpassPage()
         )
+
         
       ],   errorBuilder: (context, state) => const NotFoundPage(),
       redirect: (context, state) async {
