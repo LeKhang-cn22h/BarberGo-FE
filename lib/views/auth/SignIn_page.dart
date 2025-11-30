@@ -157,7 +157,7 @@ class SignInPage extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 16),
                                   TextButton(onPressed: (){
-                                    context.goNamed('forgot');
+                                    context.pushNamed('forgot');
                                   }, child: const Text("Quên mật khẩu")),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
