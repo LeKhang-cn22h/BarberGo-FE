@@ -147,7 +147,7 @@ class SignInPage extends StatelessWidget {
                                       onPressed: () async {
                                         final isSuccess= await viewModel.signIn();
                                         if(isSuccess){
-                                          context.goNamed('OTP');
+                                          context.goNamed('home');
                                         }
 
                                       },

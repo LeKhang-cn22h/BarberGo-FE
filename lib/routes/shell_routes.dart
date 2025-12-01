@@ -7,10 +7,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 /// ShellRoute dùng cho layout có Bottom Navigation
 final ShellRoute shellRoutes = ShellRoute(
-  /// MainLayout là widget có bottom nav và chứa child
-  builder: (context, state, child) => MainLayout(child: child),
+  builder: (context, state, child) {
+    String title = _getTitle(state.uri.toString());
 
-  /// Các route con nằm trong layout
+    return MainLayout(
+      title: title,
+      child: child,
+    );
+  },
+
   routes: [
     GoRoute(
       path: '/home',
@@ -25,8 +30,7 @@ final ShellRoute shellRoutes = ShellRoute(
     GoRoute(
       path: '/history',
       name: 'history',
-      builder: (context, state) => const HistoryPage
-        (),
+      builder: (context, state) => const HistoryPage(),
     ),
     GoRoute(
       path: '/profile',
@@ -35,3 +39,12 @@ final ShellRoute shellRoutes = ShellRoute(
     ),
   ],
 );
+
+String _getTitle(String location) {
+  if (location.startsWith('/home')) return 'Trang chủ';
+  if (location.startsWith('/booking')) return 'Lịch hẹn';
+  if (location.startsWith('/history')) return 'Lịch sử';
+  if (location.startsWith('/profile')) return 'Cá nhân';
+
+  return '';
+}
