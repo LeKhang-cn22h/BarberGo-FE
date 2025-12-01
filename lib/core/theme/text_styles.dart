@@ -7,10 +7,16 @@ class AppTextStyles {
 
   // Style cho tiêu đề (heading)
   static const heading = TextStyle(
-    fontSize: 24,                    // cỡ chữ
+    fontSize: 30,                    // cỡ chữ
     fontWeight: FontWeight.bold,     // chữ đậm
     color: AppColors.textPrimary,    // màu chữ chính
   );
+  static const headinglight = TextStyle(
+    fontSize: 30,                    // cỡ chữ
+    fontWeight: FontWeight.bold,     // chữ đậm
+    color: AppColors.textPrimaryLight,    // màu chữ chính
+  );
+
 
   // Style cho nội dung (body text)
   static const body = TextStyle(
@@ -24,3 +30,4 @@ class AppTextStyles {
     color: AppColors.textSecondary,  // màu chữ phụ
   );
 }
+//cách dùng style:AppTextStyles.heading;

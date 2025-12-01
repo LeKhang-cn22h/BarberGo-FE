@@ -5,4 +5,8 @@ class RouteNames{
   static const signup = '/signup';
   static const booking = '/booking';
   static const profile = '/profile';
+  static const otp='/otp';
+  static const forgot='/forgot';
+  static const succes='/succes';
+  static const  newPass='/newPass';
 }

@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:barbergofe/viewmodels/auth/sign_in_viewmodel.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:barbergofe/core/theme/AppImages.dart';
 import 'package:barbergofe/core/theme/text_styles.dart';
@@ -143,20 +144,27 @@ class SignInPage extends StatelessWidget {
                                   Align(
                                     alignment: Alignment.center,
                                     child: AppButton(
-                                      onPressed: viewModel.signIn,
+                                      onPressed: () async {
+                                        final isSuccess= await viewModel.signIn();
+                                        if(isSuccess){
+                                          context.goNamed('home');
+                                        }
+
+                                      },
                                       isLoading: viewModel.isLoading,
                                       text: 'ĐĂNG NHẬP',
                                     ),
                                   ),
                                   const SizedBox(height: 16),
+                                  TextButton(onPressed: (){
+                                    context.pushNamed('forgot');
+                                  }, child: const Text("Quên mật khẩu")),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       const Text("Chưa có tài khoản?"),
                                       TextButton(
-                                        onPressed: () {
-                                          // TODO: điều hướng sang trang đăng ký
-                                        },
+                                        onPressed: () { context.goNamed('signup');},
                                         child: const Text(
                                           "Đăng ký ngay",
                                           style: TextStyle(

@@ -36,10 +36,8 @@ class SignInViewModel extends ChangeNotifier {
     isLoading = true;
     notifyListeners();
 
-    // Giả lập gọi API đăng nhập
     await Future.delayed(const Duration(seconds: 1));
 
-    // Ví dụ tạo user, có thể dùng kết nối API thực tế
     final user = User(fullName: "Demo", email: emailController.text, password: passwordController.text);
 
     isLoading = false;

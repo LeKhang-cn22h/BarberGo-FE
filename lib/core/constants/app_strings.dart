@@ -30,3 +30,5 @@ class IntroStrings {
   static const String intro1 = 'Quản lý lịch hẹn cắt tóc dễ dàng';
   static const String intro2 = 'Gợi ý kiểu tóc phù hợp với bạn';
 }
+
+//cách dùng import và teenclass.login

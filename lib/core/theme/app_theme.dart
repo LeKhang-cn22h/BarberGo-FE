@@ -24,9 +24,9 @@ class AppTheme {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         // Màu nền button
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppColors.secondary,
         // Màu chữ trên button
-        foregroundColor: AppColors.textPrimary,
+        foregroundColor: AppColors.primary,
       ),
     ),
 

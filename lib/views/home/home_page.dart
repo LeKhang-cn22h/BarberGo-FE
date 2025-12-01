@@ -1,0 +1,26 @@
+import 'package:barbergofe/views/home/widgets/AI_section.dart';
+import 'package:barbergofe/views/home/widgets/FeaturedBarbersSection.dart';
+import 'package:flutter/material.dart';
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      // appBar: AppBar(
+      //   title: const Text('Trang chủ'),
+      // ),
+      body: const Center(
+        child:
+            Column(
+              children: [
+                AiSection(),
+                Featuredbarberssection(),
+
+              ],
+            )
+      ),
+    );
+  }
+}

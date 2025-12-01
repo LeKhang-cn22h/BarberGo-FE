@@ -19,12 +19,10 @@ class AppButton extends StatelessWidget {
       height: 50,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
-        style: AppButtonStyles.roundedButtonnotBold,
         child: isLoading
             ? const CircularProgressIndicator(color: Colors.white)
             : Text(
-          text,
-          style: const TextStyle(fontSize: 16),
+          text
         ),
       ),
     );
