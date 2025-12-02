@@ -16,6 +16,7 @@ class HomePage extends StatelessWidget {
             Column(
               children: [
                 AiSection(),
+                const SizedBox(height: 20,),
                 Featuredbarberssection(),
 
               ],
