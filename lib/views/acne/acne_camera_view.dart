@@ -1,12 +1,12 @@
 import 'dart:io';
-
-import 'package:barbergofe/viewmodels/acne_viewmodel.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import '../../viewmodels/acne_viewmodel.dart';
+import 'acne_result_screen.dart';
 
 class AcneCameraView extends StatefulWidget {
   const AcneCameraView({Key? key}) : super(key: key);
@@ -20,7 +20,9 @@ class _AcneCameraViewState extends State<AcneCameraView> {
   List<CameraDescription>? _cameras;
   bool _isPermissionGranted = false;
   bool _isLoading = true;
+  bool _isProcessing = false;
   String? _permissionError;
+  File? _capturedImage;
 
   @override
   void initState() {
@@ -28,7 +30,8 @@ class _AcneCameraViewState extends State<AcneCameraView> {
     _requestPermissionAndInitCamera();
   }
 
-  // XIN QUYỀN VÀ KHỞI TẠO CAMERA
+  // ==================== PERMISSION & CAMERA INIT ====================
+
   Future<void> _requestPermissionAndInitCamera() async {
     setState(() {
       _isLoading = true;
@@ -41,7 +44,7 @@ class _AcneCameraViewState extends State<AcneCameraView> {
       setState(() {
         _isPermissionGranted = true;
       });
-      await initCamera();
+      await _initCamera();
     } else if (status.isPermanentlyDenied) {
       setState(() {
         _isPermissionGranted = false;
@@ -57,31 +60,35 @@ class _AcneCameraViewState extends State<AcneCameraView> {
     }
   }
 
-  Future<void> initCamera() async {
+  Future<void> _initCamera() async {
     try {
       _cameras = await availableCameras();
-      if (_cameras != null && _cameras!.isNotEmpty) {
-        CameraDescription frontCamera = _cameras!.firstWhere(
-              (camera) => camera.lensDirection == CameraLensDirection.front,
-          orElse: () => _cameras!.first,
-        );
 
-        _controller = CameraController(
-          frontCamera,
-          ResolutionPreset.high, // ✅ Tăng chất lượng
-          enableAudio: false,
-        );
-
-        await _controller!.initialize();
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
-      } else {
+      if (_cameras == null || _cameras!.isEmpty) {
         setState(() {
           _isLoading = false;
           _permissionError = 'Không tìm thấy camera trên thiết bị.';
+        });
+        return;
+      }
+
+      // Use front camera
+      final frontCamera = _cameras!.firstWhere(
+            (camera) => camera.lensDirection == CameraLensDirection.front,
+        orElse: () => _cameras!.first,
+      );
+
+      _controller = CameraController(
+        frontCamera,
+        ResolutionPreset.high,
+        enableAudio: false,
+      );
+
+      await _controller!.initialize();
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
         });
       }
     } catch (e) {
@@ -92,38 +99,181 @@ class _AcneCameraViewState extends State<AcneCameraView> {
     }
   }
 
-  Future<File?> takePicture() async {
-    if (_controller == null || !_controller!.value.isInitialized) return null;
+  // ==================== CAPTURE & DETECT ====================
+
+  Future<void> _captureAndDetect() async {
+    if (_controller == null || !_controller!.value.isInitialized) {
+      _showSnackBar('Camera chưa sẵn sàng', Colors.red);
+      return;
+    }
+
+    if (_isProcessing) return;
+
+    setState(() {
+      _isProcessing = true;
+    });
 
     try {
-      final XFile file = await _controller!.takePicture();
+      // Capture image
+      final XFile xFile = await _controller!.takePicture();
 
       final dir = await getApplicationDocumentsDirectory();
-      final String newPath =
-      path.join(dir.path, '${DateTime.now().millisecondsSinceEpoch}.jpg');
-
-      final newFile = await File(file.path).copy(newPath);
-      return newFile;
-    } catch (e) {
-      print('Lỗi khi chụp ảnh: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi chụp ảnh: $e'), backgroundColor: Colors.red),
+      final String newPath = path.join(
+        dir.path,
+        'acne_${DateTime.now().millisecondsSinceEpoch}.jpg',
       );
-      return null;
+
+      final File imageFile = await File(xFile.path).copy(newPath);
+
+      setState(() {
+        _capturedImage = imageFile;
+      });
+
+      // Save to viewmodel
+      final viewModel = Provider.of<AcneViewModel>(context, listen: false);
+      viewModel.setCapturedImage(imageFile);
+
+      // Show loading dialog
+      if (mounted) {
+        _showLoadingDialog();
+      }
+
+      // Detect acne
+      await viewModel.detect();
+
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      // Navigate to result
+      if (mounted && viewModel.response != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AcneResultScreen(
+              response: viewModel.response!,
+              capturedImage: imageFile,
+            ),
+          ),
+        ).then((_) {
+          // Reset after returning from result screen
+          setState(() {
+            _capturedImage = null;
+          });
+          viewModel.reset();
+        });
+      } else if (mounted && viewModel.errorMessage != null) {
+        _showSnackBar(viewModel.errorMessage!, Colors.red);
+      }
+    } catch (e) {
+      print('❌ Error: $e');
+
+      if (mounted) {
+        // Close loading dialog if open
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        _showSnackBar('Lỗi: ${e.toString()}', Colors.red);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
     }
   }
 
-  String getStepLabel(int step) {
-    switch (step) {
-      case 0:
-        return "Mặt trái";
-      case 1:
-        return "Chính diện";
-      case 2:
-        return "Mặt phải";
-      default:
-        return "Hoàn tất";
-    }
+  // ==================== UI HELPERS ====================
+
+  void _showLoadingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => WillPopScope(
+        onWillPop: () async => false,
+        child: Center(
+          child: Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  const Text(
+                    '🔍 Đang phân tích...',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Vui lòng đợi',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showSnackBar(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
+  void _showTipsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.lightbulb_outline, color: Colors.orange),
+            SizedBox(width: 8),
+            Text('💡 Hướng dẫn chụp ảnh'),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _TipItem(icon: '✓', text: 'Rửa mặt sạch trước khi chụp'),
+            _TipItem(icon: '✓', text: 'Chụp ở nơi có ánh sáng tốt'),
+            _TipItem(icon: '✓', text: 'Không trang điểm'),
+            _TipItem(icon: '✓', text: 'Nhìn thẳng vào camera'),
+            _TipItem(icon: '✓', text: 'Khoảng cách 30-40cm'),
+            _TipItem(icon: '✓', text: 'Đặt mặt vào khung hình oval'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Đã hiểu'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showPermissionDialog() {
@@ -157,38 +307,47 @@ class _AcneCameraViewState extends State<AcneCameraView> {
     super.dispose();
   }
 
+  // ==================== BUILD UI ====================
+
   @override
   Widget build(BuildContext context) {
-    final vm = Provider.of<AcneViewModel>(context);
-
-    // TRẠNG THÁI ĐANG LOADING
+    // Loading state
     if (_isLoading) {
       return Scaffold(
+        backgroundColor: Colors.black,
         appBar: AppBar(
-          // title: const Text("Phát hiện mụn"),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.pop(context),
-          ),
+          backgroundColor: Colors.black,
+          elevation: 0,
         ),
-
         body: const Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(),
+              CircularProgressIndicator(color: Colors.white),
               SizedBox(height: 20),
-              Text('Đang khởi tạo camera...'),
+              Text(
+                'Đang khởi tạo camera...',
+                style: TextStyle(color: Colors.white),
+              ),
             ],
           ),
         ),
       );
     }
 
-    // TRẠNG THÁI KHÔNG CÓ QUYỀN
+    // Permission denied state
     if (!_isPermissionGranted || _permissionError != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text("Phát hiện mụn")),
+        appBar: AppBar(
+          title: const Text('Phát hiện mụn'),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.of(context).pop();  // Quay về màn trước
+            },
+          ),
+        ),
+
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -220,247 +379,273 @@ class _AcneCameraViewState extends State<AcneCameraView> {
       );
     }
 
-    // TRẠNG THÁI CAMERA KHÔNG KHẢ DỤNG
+    // Camera not available
     if (_controller == null || !_controller!.value.isInitialized) {
       return Scaffold(
-        appBar: AppBar(title: const Text("Phát hiện mụn")),
+        appBar: AppBar(title: const Text('Phát hiện mụn')),
         body: const Center(
           child: Text('Camera không khả dụng'),
         ),
       );
     }
 
-    // ✅ UI MỚI - CAMERA LỚN, CHI TIẾT NHỎ
+    // ✅✅✅ MAIN UI - CAMERA VIEW ✅✅✅
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text("Phát hiện mụn", style: TextStyle(fontSize: 16)),
+        title: const Text('Phát hiện mụn'),
         backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            onPressed: _showTipsDialog,
+            tooltip: 'Hướng dẫn',
+          ),
+        ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          // ✅ CAMERA PREVIEW - CHIẾM PHẦN LỚN MÀN HÌNH
-          Expanded(
-            flex: 7, // 70% màn hình
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // Camera
-                CameraPreview(_controller!),
-
-                // Overlay hướng dẫn góc chụp (nếu muốn)
-                Positioned(
-                  top: 10,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.6),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.camera_alt, color: Colors.white, size: 16),
-                          const SizedBox(width: 6),
-                          Text(
-                            vm.captureStep >= 3
-                                ? "✓ Hoàn tất"
-                                : "Chụp: ${getStepLabel(vm.captureStep)}",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+          // ==================== CAMERA PREVIEW ====================
+          Positioned.fill(
+            child: Center(
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.8,   // TỰ CHỈNH
+                height: MediaQuery.of(context).size.height * 0.6, // TỰ CHỈNH
+                child: FittedBox(
+                  fit: BoxFit.cover,
+                  child: SizedBox(
+                    width: _controller!.value.previewSize!.height,
+                    height: _controller!.value.previewSize!.width,
+                    child: CameraPreview(_controller!),
                   ),
                 ),
-
-                // Nút chụp ảnh nổi
-                Positioned(
-                  bottom: 20,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: GestureDetector(
-                      onTap: vm.captureStep >= 3
-                          ? null
-                          : () async {
-                        final file = await takePicture();
-                        if (file != null) {
-                          vm.setImage(file);
-                        }
-                      },
-                      child: Container(
-                        width: 70,
-                        height: 70,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: vm.captureStep >= 3
-                              ? Colors.grey
-                              : Colors.white,
-                          border: Border.all(
-                            color: Colors.white,
-                            width: 4,
-                          ),
-                        ),
-                        child: Icon(
-                          Icons.camera_alt,
-                          color: vm.captureStep >= 3
-                              ? Colors.white54
-                              : Colors.black,
-                          size: 32,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
 
-          // ✅ PHẦN ĐIỀU KHIỂN - CHIẾM 30% MÀN HÌNH
-          Expanded(
-            flex: 3,
+
+
+          // ==================== FACE GUIDE OVERLAY ====================
+          Center(
             child: Container(
-              color: Colors.grey.shade900,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              width: MediaQuery.of(context).size.width * 0.85,
+              height: MediaQuery.of(context).size.width * 0.95,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.5),
+                  width: 3,
+                ),
+              ),
+            ),
+          ),
+
+          // ==================== INSTRUCTIONS ====================
+          Positioned(
+            top: 20,
+            left: 0,
+            right: 0,
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Column(
                 children: [
-                  // Thumbnail ảnh đã chụp - nhỏ gọn
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildSmallThumbnail("Trái", vm.leftImage),
-                      const SizedBox(width: 8),
-                      _buildSmallThumbnail("Giữa", vm.frontImage),
-                      const SizedBox(width: 8),
-                      _buildSmallThumbnail("Phải", vm.rightImage),
-                    ],
+                  const Text(
+                    ' Đặt mặt vào khung hình',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    ' Chụp chính diện  - Ánh sáng đủ  - Mặt rõ ràng',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 13,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ==================== CAPTURE BUTTON ====================
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Column(
+                children: [
+                  // Main capture button
+                  GestureDetector(
+                    onTap: _isProcessing ? null : _captureAndDetect,
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _isProcessing ? Colors.grey : Colors.white,
+                        border: Border.all(
+                          color: Colors.white,
+                          width: 4,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: _isProcessing
+                          ? const Padding(
+                        padding: EdgeInsets.all(20),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.black,
+                          ),
+                        ),
+                      )
+                          : const Icon(
+                        Icons.camera_alt,
+                        size: 40,
+                        color: Colors.black,
+                      ),
+                    ),
                   ),
 
                   const SizedBox(height: 12),
 
-                  // Nút phát hiện mụn
-                  SizedBox(
-                    width: double.infinity,
-                    height: 45,
-                    child: ElevatedButton.icon(
-                      onPressed: vm.isCaptureDone && !vm.isLoading
-                          ? () async {
-                        await vm.detect();
-
-                        if (vm.error != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("Lỗi: ${vm.error}"),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        } else if (vm.response != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                "Phát hiện thành công! Tổng mụn: ${vm.response!.data.totalAcne}",
-                              ),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
-                        }
-                      }
-                          : null,
-                      icon: vm.isLoading
-                          ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                          : const Icon(Icons.search, size: 20),
-                      label: Text(
-                        vm.isLoading ? "Đang phân tích..." : "Phát hiện mụn",
-                        style: const TextStyle(fontSize: 15),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
+                  // Label
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
                     ),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Nút chụp lại
-                  TextButton.icon(
-                    onPressed: () {
-                      vm.reset();
-                    },
-                    icon: const Icon(Icons.refresh, size: 18),
-                    label: const Text("Chụp lại", style: TextStyle(fontSize: 13)),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.white70,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      _isProcessing ? 'Đang xử lý...' : 'Chụp ảnh',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
           ),
+
+          // ==================== TIPS BUTTON ====================
+          // Positioned(
+          //   bottom: 150,
+          //   left: 0,
+          //   right: 0,
+          //   child: Center(
+          //     child: TextButton.icon(
+          //       onPressed: _showTipsDialog,
+          //       icon: const Icon(Icons.help_outline, color: Colors.white),
+          //       label: const Text(
+          //         'Hướng dẫn chụp',
+          //         style: TextStyle(color: Colors.white),
+          //       ),
+          //       style: TextButton.styleFrom(
+          //         backgroundColor: Colors.black.withOpacity(0.5),
+          //         padding: const EdgeInsets.symmetric(
+          //           horizontal: 20,
+          //           vertical: 12,
+          //         ),
+          //         shape: RoundedRectangleBorder(
+          //           borderRadius: BorderRadius.circular(20),
+          //         ),
+          //       ),
+          //     ),
+          //   ),
+          // ),
+
+          // ==================== PREVIEW CAPTURED IMAGE ====================
+          if (_capturedImage != null)
+            Positioned(
+              top: 100,
+              right: 16,
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.green, width: 3),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.5),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(9),
+                  child: Image.file(
+                    _capturedImage!,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
+}
 
-  // ✅ Thumbnail nhỏ gọn
-  Widget _buildSmallThumbnail(String label, File? image) {
-    return Column(
-      children: [
-        Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: image != null ? Colors.green : Colors.grey.shade600,
-              width: 2,
-            ),
-            borderRadius: BorderRadius.circular(8),
-            color: Colors.grey.shade800,
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: image != null
-                ? Image.file(
-              image,
-              fit: BoxFit.cover,
-            )
-                : Icon(
-              Icons.add_a_photo,
-              size: 24,
-              color: Colors.grey.shade600,
+// ==================== TIP ITEM WIDGET ====================
+
+class _TipItem extends StatelessWidget {
+  final String icon;
+  final String text;
+
+  const _TipItem({
+    required this.icon,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            icon,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.green,
+              fontWeight: FontWeight.bold,
             ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: image != null ? Colors.green : Colors.grey.shade500,
-            fontWeight: FontWeight.w500,
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 14),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
