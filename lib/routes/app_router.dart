@@ -11,6 +11,9 @@ import 'package:barbergofe/views/succes/succes_page.dart';
   import 'package:go_router/go_router.dart';
   import 'package:barbergofe/views/auth/SignIn_page.dart';
   import 'package:barbergofe/views/intro/Screen_intro.dart';
+  import 'package:barbergofe/views/acne/acne_camera_view.dart';
+  import 'package:barbergofe/viewmodels/acne_viewmodel.dart';
+  import 'package:provider/provider.dart';
   final GoRouter appRouter = GoRouter(
       initialLocation: RouteNames.getStarted,
       routes:[
@@ -46,6 +49,14 @@ import 'package:barbergofe/views/succes/succes_page.dart';
         GoRoute(path: RouteNames.newPass,
             name: 'newpass',
             builder: (context, state) => const NewpassPage()
+        ),
+        GoRoute(
+          path: RouteNames.acnes,
+          name: 'acne',
+          builder: (context, state) => ChangeNotifierProvider(
+            create: (_) => AcneViewModel(),
+            child: const AcneCameraView(),
+          ),
         ),
         GoRoute(path: RouteNames.detail,
         name: 'detail',
