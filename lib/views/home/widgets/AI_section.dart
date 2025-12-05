@@ -33,6 +33,9 @@ class AiSection extends StatelessWidget {
             Aiconsultationitem(
               icon: Icons.chat_bubble_outline,
               label: 'AI chat',
+              onTap: (){
+                context.pushNamed('hair');
+              },
             ),
           ],
         ),
