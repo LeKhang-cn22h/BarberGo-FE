@@ -75,7 +75,7 @@ class _IntroScreenState extends State<IntroScreen> {
                           );
                         } else {
                           // Gọi hàm onGet để lưu trạng thái đã xem Intro
-                          viewModel.onGet();
+                           viewModel.onGet();
 
                           // Chuyển sang Login Screen
                           context.pushNamed('signup');
