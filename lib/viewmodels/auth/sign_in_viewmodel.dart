@@ -1,52 +1,97 @@
-import 'package:barbergofe/core/utils/extensions.dart';
 import 'package:flutter/material.dart';
-import 'package:barbergofe/models/auth/user_model.dart';
 
 class SignInViewModel extends ChangeNotifier {
+  // Controllers
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
-  bool isLoading = false;
+  // Validation errors
   String? emailError;
   String? passwordError;
 
-  // Validate dữ liệu nhập
-  bool validateInputs() {
-    bool isValid = true;
+  // Loading state (chỉ cho validation)
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
 
-    emailError = emailController.text.isNotEmpty && emailController.text.isValidEmail
-        ? null
-        : "Email không hợp lệ";
-    passwordError = passwordController.text.isNotEmpty
-        ? null
-        : "Mật khẩu không được để trống";
+  // ==================== VALIDATION ====================
 
-    if (emailError != null || passwordError != null) {
-      isValid = false;
+  bool _validateEmail() {
+    final email = emailController.text.trim();
+
+    if (email.isEmpty) {
+      emailError = 'Vui lòng nhập email';
+      notifyListeners();
+      return false;
     }
 
-    notifyListeners();
-    return isValid;
-  }
+    if (!email.contains('@') || !email.contains('.')) {
+      emailError = 'Email không hợp lệ';
+      notifyListeners();
+      return false;
+    }
 
-  // Hàm đăng nhập
-  Future<bool> signIn() async {
-    if (!validateInputs()) return false;
-
-    isLoading = true;
-    notifyListeners();
-
-    await Future.delayed(const Duration(seconds: 1));
-
-    final user = User(fullName: "Demo", email: emailController.text, password: passwordController.text);
-
-    isLoading = false;
+    emailError = null;
     notifyListeners();
     return true;
   }
 
-  void disposeController() {
+  bool _validatePassword() {
+    final password = passwordController.text;
+
+    if (password.isEmpty) {
+      passwordError = 'Vui lòng nhập mật khẩu';
+      notifyListeners();
+      return false;
+    }
+
+    if (password.length < 6) {
+      passwordError = 'Mật khẩu phải có ít nhất 6 ký tự';
+      notifyListeners();
+      return false;
+    }
+
+    passwordError = null;
+    notifyListeners();
+    return true;
+  }
+
+  bool validateAll() {
+    final emailValid = _validateEmail();
+    final passwordValid = _validatePassword();
+    return emailValid && passwordValid;
+  }
+
+  // ==================== SIGN IN ====================
+
+  Future<bool> signIn() async {
+    print('🔵 [SIGN IN VIEWMODEL] Validating...');
+
+    if (!validateAll()) {
+      return false;
+    }
+
+    _isLoading = true;
+    notifyListeners();
+
+    await Future.delayed(Duration(milliseconds: 200));
+
+    _isLoading = false;
+    notifyListeners();
+
+    print('[SIGN IN VIEWMODEL] Validation passed');
+    return true;
+  }
+
+  void clearErrors() {
+    emailError = null;
+    passwordError = null;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
     emailController.dispose();
     passwordController.dispose();
+    super.dispose();
   }
 }
