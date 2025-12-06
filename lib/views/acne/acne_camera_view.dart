@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';  // ← THÊM
 import '../../viewmodels/acne_viewmodel.dart';
 import 'acne_result_screen.dart';
 
@@ -23,6 +25,7 @@ class _AcneCameraViewState extends State<AcneCameraView> {
   bool _isProcessing = false;
   String? _permissionError;
   File? _capturedImage;
+  final ImagePicker _picker = ImagePicker();  // ← THÊM
 
   @override
   void initState() {
@@ -96,6 +99,93 @@ class _AcneCameraViewState extends State<AcneCameraView> {
         _isLoading = false;
         _permissionError = 'Lỗi khởi tạo camera: $e';
       });
+    }
+  }
+
+  // ==================== PICK IMAGE FROM GALLERY ====================
+
+  Future<void> _pickImageFromGallery() async {
+    if (_isProcessing) return;
+
+    try {
+      final XFile? xFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+      );
+
+      if (xFile == null) {
+        // User cancelled
+        return;
+      }
+
+      setState(() {
+        _isProcessing = true;
+      });
+
+      // Copy to app directory
+      final dir = await getApplicationDocumentsDirectory();
+      final String newPath = path.join(
+        dir.path,
+        'acne_gallery_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      );
+
+      final File imageFile = await File(xFile.path).copy(newPath);
+
+      setState(() {
+        _capturedImage = imageFile;
+      });
+
+      // Save to viewmodel
+      final viewModel = Provider.of<AcneViewModel>(context, listen: false);
+      viewModel.setCapturedImage(imageFile);
+
+      // Show loading dialog
+      if (mounted) {
+        _showLoadingDialog();
+      }
+
+      // Detect acne
+      await viewModel.detect();
+
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      // Navigate to result
+      if (mounted && viewModel.response != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AcneResultScreen(
+              response: viewModel.response!,
+              capturedImage: imageFile,
+            ),
+          ),
+        ).then((_) {
+          // Reset after returning from result screen
+          setState(() {
+            _capturedImage = null;
+          });
+          viewModel.reset();
+        });
+      } else if (mounted && viewModel.errorMessage != null) {
+        _showSnackBar(viewModel.errorMessage!, Colors.red);
+      }
+    } catch (e) {
+      print('❌ Error picking image: $e');
+
+      if (mounted) {
+        // Close loading dialog if open
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        _showSnackBar('Lỗi: ${e.toString()}', Colors.red);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
     }
   }
 
@@ -341,13 +431,12 @@ class _AcneCameraViewState extends State<AcneCameraView> {
         appBar: AppBar(
           title: const Text('Phát hiện mụn'),
           leading: IconButton(
-            icon: Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              Navigator.of(context).pop();  // Quay về màn trước
+              context.pop();
             },
           ),
         ),
-
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -410,8 +499,8 @@ class _AcneCameraViewState extends State<AcneCameraView> {
           Positioned.fill(
             child: Center(
               child: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.8,   // TỰ CHỈNH
-                height: MediaQuery.of(context).size.height * 0.6, // TỰ CHỈNH
+                width: MediaQuery.of(context).size.width * 0.8,
+                height: MediaQuery.of(context).size.height * 0.6,
                 child: FittedBox(
                   fit: BoxFit.cover,
                   child: SizedBox(
@@ -423,8 +512,6 @@ class _AcneCameraViewState extends State<AcneCameraView> {
               ),
             ),
           ),
-
-
 
           // ==================== FACE GUIDE OVERLAY ====================
           Center(
@@ -456,7 +543,7 @@ class _AcneCameraViewState extends State<AcneCameraView> {
               child: Column(
                 children: [
                   const Text(
-                    ' Đặt mặt vào khung hình',
+                    'Đặt mặt vào khung hình',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -466,7 +553,7 @@ class _AcneCameraViewState extends State<AcneCameraView> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    ' Chụp chính diện  - Ánh sáng đủ  - Mặt rõ ràng',
+                    'Chụp chính diện - Ánh sáng đủ - Mặt rõ ràng',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.8),
                       fontSize: 13,
@@ -478,7 +565,42 @@ class _AcneCameraViewState extends State<AcneCameraView> {
             ),
           ),
 
-          // ==================== CAPTURE BUTTON ====================
+          // ==================== GALLERY BUTTON (LEFT) ====================
+          Positioned(
+            bottom: 40,
+            left: 40,
+            child: GestureDetector(
+              onTap: _isProcessing ? null : _pickImageFromGallery,
+              child: Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _isProcessing
+                      ? Colors.grey.withOpacity(0.5)
+                      : Colors.white.withOpacity(0.9),
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 3,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.photo_library,
+                  size: 30,
+                  color: _isProcessing ? Colors.grey : Colors.black,
+                ),
+              ),
+            ),
+          ),
+
+          // ==================== CAPTURE BUTTON (CENTER) ====================
           Positioned(
             bottom: 40,
             left: 0,
@@ -550,33 +672,6 @@ class _AcneCameraViewState extends State<AcneCameraView> {
               ),
             ),
           ),
-
-          // ==================== TIPS BUTTON ====================
-          // Positioned(
-          //   bottom: 150,
-          //   left: 0,
-          //   right: 0,
-          //   child: Center(
-          //     child: TextButton.icon(
-          //       onPressed: _showTipsDialog,
-          //       icon: const Icon(Icons.help_outline, color: Colors.white),
-          //       label: const Text(
-          //         'Hướng dẫn chụp',
-          //         style: TextStyle(color: Colors.white),
-          //       ),
-          //       style: TextButton.styleFrom(
-          //         backgroundColor: Colors.black.withOpacity(0.5),
-          //         padding: const EdgeInsets.symmetric(
-          //           horizontal: 20,
-          //           vertical: 12,
-          //         ),
-          //         shape: RoundedRectangleBorder(
-          //           borderRadius: BorderRadius.circular(20),
-          //         ),
-          //       ),
-          //     ),
-          //   ),
-          // ),
 
           // ==================== PREVIEW CAPTURED IMAGE ====================
           if (_capturedImage != null)

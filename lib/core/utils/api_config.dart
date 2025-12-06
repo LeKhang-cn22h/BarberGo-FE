@@ -194,6 +194,12 @@ class ApiConfig {
     return '$baseUrl$bookingCancel/$bookingId/cancel';
   }
 
+  static const String hairstyleGenerate = "/api/v1/hairstyle/generate";
+  static const String hairstyleStyles = "/api/v1/hairstyle/styles";
+  static const String hairstyleAdvanced = "/api/v1/hairstyle/generate-advanced";
+  static const String hairstyleCreateMask = "/api/v1/hairstyle/create-mask";
+  static const String hairstyleMultiple = "/api/v1/hairstyle/generate-multiple";
+  static const String hairstyleHealth = "/api/v1/hairstyle/health";
   // ==================== HELPERS ====================
 
   /// Get full URL

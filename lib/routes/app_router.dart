@@ -23,6 +23,7 @@ import 'package:barbergofe/views/auth/SignIn_page.dart';
 import 'package:barbergofe/views/auth/SignUp_page.dart';
 import 'package:barbergofe/views/OTP/page/otp_page.dart';
 import 'package:barbergofe/views/forgotPass/forgotPass_page.dart';
+import 'package:barbergofe/views/hair/hairstyle_screen.dart';
 import 'package:barbergofe/views/newPass/newPass_page.dart';
 import 'package:barbergofe/views/succes/succes_page.dart';
 import 'package:barbergofe/views/not_found_page.dart';
@@ -265,6 +266,10 @@ class AppRouter {
         },
       ),
 
+        GoRoute(path: RouteNames.hair,
+            name: 'hair',
+            builder: (context, state) =>  CameraScreen()
+        ),
 
       shellRoutes,
     ],

@@ -21,4 +21,6 @@ class RouteNames{
 //EROR
   static const String notFound = '/404';
 
+  static const hair='/hair';
+
 }
