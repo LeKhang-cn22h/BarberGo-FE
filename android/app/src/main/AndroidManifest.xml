@@ -84,9 +84,12 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <!-- Scheme là tên app bạn chọn, host có thể là reset-password -->
-                <data android:scheme="myapp" android:host="reset-password" />
+                <data android:scheme="barbergo" android:host="reset-password" />
             </intent-filter>
         </activity>
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAKthnRcmywbrulVsAbOO5Ver_jCXsya6Y"/>
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

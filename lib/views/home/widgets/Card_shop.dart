@@ -8,6 +8,7 @@ class CardShop extends StatelessWidget {
   final String location;
   final double rank;
   final String imagePath;
+  final VoidCallback? onTap;
 
   const CardShop({
     super.key,
@@ -15,82 +16,131 @@ class CardShop extends StatelessWidget {
     required this.imagePath,
     required this.name,
     required this.location,
-    required this.rank,
+    required  this.rank,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 336,
+    return GestureDetector(
+      onTap: onTap, // Sử dụng onTap ở đây
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Container(
+          width: double.infinity,
           height: 150,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.secondary,
-            borderRadius: BorderRadius.all(Radius.circular(16)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey,
-                blurRadius: 20,
-                offset: Offset( 0, 1.0), // Shadow position
-              )
-            ]
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
             children: [
-              // LEFT SIDE
+              // Left side - Info
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(children: [
-                        const Icon(Icons.store),
-                        const SizedBox(width: 4),
-                        Text(name),
-                      ]),
-                      Row(children: [
-                        const Icon(Icons.location_pin),
-                        const SizedBox(width: 4),
-                        Text(location),
-                      ]),
-                      Row(children: [
-                         const Icon(Icons.star, color: Color(0xFFF3B51C)),
-                        const SizedBox(width: 4),
-                        Text(rank.toString(), style: TextStyle(
-                          fontWeight: FontWeight.bold
-                        ),),
-                      ]),
-                      TextButton(onPressed: (){
-                        context.goNamed('detail', pathParameters: {'id': id});
-                      }, child: Text("Xem chi tiết"), style: TextButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.textPrimaryLight,
+                      // Shop name
+                      Row(
+                        children: [
+                          const Icon(Icons.store, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
 
-                      ),)
+                      // Location
+                      Row(
+                        children: [
+                          const Icon(Icons.location_pin, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              location,
+                              style: const TextStyle(fontSize: 14),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      // Rating
+                      Row(
+                        children: [
+                          const Icon(Icons.star, color: Color(0xFFF3B51C), size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            rank.toStringAsFixed(1),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      // View details button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            context.goNamed('detail', pathParameters: {'id': id});
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: AppColors.textPrimaryLight,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                          child: const Text("Xem chi tiết"),
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
 
-              // RIGHT SIDE IMAGE (nhô lên)
-              Transform.translate(
-                offset: const Offset(0, -30), // ảnh nhô lên 20px
+              // Right side - Image
+              Padding(
+                padding: const EdgeInsets.only(right: 16, top: 16, bottom: 16),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
+                  child: Image.network(
                     imagePath,
-                    width: 150,
-                    height: 150,
+                    width: 120,
+                    height: double.infinity,
                     fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 120,
+                        color: Colors.grey[300],
+                        child: const Icon(Icons.person, size: 50),
+                      );
+                    },
                   ),
                 ),
               ),
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 }

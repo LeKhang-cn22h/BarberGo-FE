@@ -8,7 +8,16 @@ class ServiceItem extends StatelessWidget {
   final String time;
   final String price;
   final VoidCallback onTap;
-  const ServiceItem({super.key, required this.index, required this.isSelected, required this.name, required this.time, required this.price, required this.onTap});
+
+  const ServiceItem({
+    super.key,
+    required this.index,
+    required this.isSelected,
+    required this.name,
+    required this.time,
+    required this.price,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +89,6 @@ class ServiceItem extends StatelessWidget {
             ),
           ],
         ),
-
       ),
     );
   }

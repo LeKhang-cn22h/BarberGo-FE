@@ -22,15 +22,15 @@ final ShellRoute shellRoutes = ShellRoute(
       name: 'home',
       builder: (context, state) => const HomePage(),
     ),
-    GoRoute(
-      path: '/booking',
-      name: 'booking',
-      builder: (context, state) => const BookingPage(),
-    ),
+    // GoRoute(
+    //   path: '/booking',
+    //   name: 'booking',
+    //   builder: (context, state) => const BookingPage(),
+    // ),
     GoRoute(
       path: '/history',
       name: 'history',
-      builder: (context, state) => const HistoryPage(),
+      builder: (context, state) => const BookingHistoryPage(),
     ),
     GoRoute(
       path: '/profile',

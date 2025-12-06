@@ -14,6 +14,10 @@ class RouteNames{
   static const detail='/detail/:id';
   static const personal='/personal';
   static const changePass='/ChangePass';
+  static const locationPicker = '/location-picker';
+  static const Partneregistration='/PartnerRegistration';
+  static const PartnerSignUpForm='/PartnerSignUpForm';
+  static const AppointmentDetail='/AppointmentDetail';
 //EROR
   static const String notFound = '/404';
 

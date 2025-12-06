@@ -1,51 +1,94 @@
 import 'package:barbergofe/core/theme/text_styles.dart';
-import 'package:barbergofe/views/home/widgets/Card_shop.dart';
+import 'package:barbergofe/viewmodels/barber/barber_viewmodel.dart';
+import 'package:barbergofe/views/home/widgets/card_shop.dart';
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
 
-class Featuredbarberssection extends StatefulWidget {
-  const Featuredbarberssection({super.key});
+class FeaturedBarbersSection extends StatefulWidget {
+  final BarberViewModel viewModel;
+
+  const FeaturedBarbersSection({
+    super.key,
+    required this.viewModel,
+  });
 
   @override
-  State<Featuredbarberssection> createState() => _FeaturedbarberssectionState();
+  State<FeaturedBarbersSection> createState() => _FeaturedBarbersSectionState();
 }
 
-class _FeaturedbarberssectionState extends State<Featuredbarberssection> {
-  List<dynamic> barbers=[];
+class _FeaturedBarbersSectionState extends State<FeaturedBarbersSection> {
   @override
   void initState() {
     super.initState();
-    loadBarbers();
-  }
-  Future<void> loadBarbers() async {
-    final String jsonString = await rootBundle.loadString('assets/data/barbers.json');
-    final List<dynamic> jsonData = json.decode(jsonString);
-
-    // chỉ lấy 3 barber nổi bật đầu tiên
-    setState(() {
-      barbers = jsonData.take(2).toList();
-    });
+    // Data đã được fetch trong HomeViewModel, không cần fetch lại
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text("Barber nổi bật", style: AppTextStyles.heading,),
-        const SizedBox(height: 12,),
-        barbers.isEmpty ? const Center(child: CircularProgressIndicator(),): Column(
-          children: barbers.map((barber){
-            return Column(
-              children: [
-                const SizedBox(height: 50,),
-                CardShop(id: barber['id'],imagePath: barber['imagePath'], name: barber['name'], location: barber['location'], rank: barber['rank']),
-              ],
-            );
-          }
-          ).toList(),
-        ),
+    final viewModel = widget.viewModel;
 
+    if (viewModel.isLoading && viewModel.topBarbers.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (viewModel.error != null && viewModel.topBarbers.isEmpty) {
+      return Column(
+        children: [
+          Text("Barber nổi bật", style: AppTextStyles.heading),
+          const SizedBox(height: 16),
+          Text(
+            viewModel.error!,
+            style: const TextStyle(color: Colors.red),
+          ),
+          ElevatedButton(
+            onPressed: () => viewModel.fetchTopBarbers(),
+            child: const Text('Thử lại'),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text("Barber nổi bật", style: AppTextStyles.heading),
+            if (viewModel.isLoading)
+              const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        if (viewModel.topBarbers.isEmpty)
+          const Center(
+            child: Text('Không có barber nào'),
+          )
+        else
+          Column(
+            children: viewModel.topBarbers.map((barber) {
+              // Sử dụng đúng property từ BarberModel
+              return Column(
+                children: [
+                  const SizedBox(height: 16),
+                  CardShop(
+                    id: barber.id,
+                    imagePath: barber.imagePath ?? 'assets/images/default_barber.jpg',
+                    name: barber.name,
+                    location: barber.location ??
+                        barber.area ??
+                        barber.address ??
+                        'Địa chỉ không xác định',
+                    rank: barber.rank ?? 0.0,
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
       ],
     );
   }
