@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class NextButton extends StatelessWidget {
-  const NextButton({super.key});
+class NextButtonBooking extends StatelessWidget {
+  const NextButtonBooking({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -6,6 +6,7 @@ class Step1Booking extends StatefulWidget {
   final String nameStep;
   final String hint;
   final dynamic content;
+  final VoidCallback? onTap;
   // content có thể là String hoặc List<String>
 
   const Step1Booking({
@@ -13,6 +14,7 @@ class Step1Booking extends StatefulWidget {
     required this.nameStep,
     required this.hint,
     required this.content,
+    this.onTap,
   });
 
   @override
@@ -66,32 +68,44 @@ class _Step1BookingState extends State<Step1Booking> {
 
         const SizedBox(height: 8),
 
-        // NỘI DUNG STEP
-        Container(
-          height: 60,
-          width: 324,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // TEXT
-              Expanded(
-                child: Text(
-                  displayText,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: hasContent ? Colors.black : Colors.grey,
+        // NỘI DUNG STEP - THÊM GestureDetector ĐỂ BẮT SỰ KIỆN TAP
+        GestureDetector(
+          onTap: widget.onTap,
+          child: Container(
+            height: 60,
+            width: 324,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              // Thêm shadow để trông như button
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 3,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // TEXT
+                Expanded(
+                  child: Text(
+                    displayText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: hasContent ? Colors.black : Colors.grey,
+                    ),
                   ),
                 ),
-              ),
 
-              Icon(Icons.arrow_forward_ios_rounded, size: 16),
-            ],
+                const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+              ],
+            ),
           ),
         ),
       ],
