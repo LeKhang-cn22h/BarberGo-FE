@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../core/utils/api_config.dart';
+import 'endpoints/api_config.dart';
+import 'endpoints/auth_endpoint.dart';
  class AuthApi{
    Future<String> register({
      required String email,
@@ -8,7 +9,7 @@ import '../core/utils/api_config.dart';
      required String fullName,
      String? phone,
    }) async {
-     final url = ApiConfig.getUrl(ApiConfig.authRegister);
+     final url = ApiConfig.getUrl(AuthEndpoint.authRegister);
      print(' POST: $url');
 
      try {
@@ -45,7 +46,7 @@ import '../core/utils/api_config.dart';
      required String email,
      required String password,
    }) async {
-     final url = ApiConfig.getUrl(ApiConfig.authLogin);
+     final url = ApiConfig.getUrl(AuthEndpoint.authLogin);
      print('POST: $url');
 
      try {
@@ -79,7 +80,7 @@ import '../core/utils/api_config.dart';
    // ==================== FORGOT PASSWORD ====================
 
    Future<String> forgotPassword({required String email}) async {
-     final url = ApiConfig.getUrl(ApiConfig.authForgot);
+     final url = ApiConfig.getUrl(AuthEndpoint.authForgotPassword);
      print('POST: $url');
 
      try {
@@ -108,7 +109,7 @@ import '../core/utils/api_config.dart';
      required String token,
      required String newPassword,
    }) async {
-     final url = ApiConfig.getUrl(ApiConfig.authReset);
+     final url = ApiConfig.getUrl(AuthEndpoint.authResetPassword);
      print('POST: $url');
 
      try {
@@ -137,7 +138,7 @@ import '../core/utils/api_config.dart';
    // ==================== RESEND CONFIRMATION ====================
 
    Future<String> resendConfirmation({required String email}) async {
-     final url = ApiConfig.getUrl(ApiConfig.authResent);
+     final url = ApiConfig.getUrl(AuthEndpoint.authResendConfirmation);
      print('🌐 POST: $url');
 
      try {
