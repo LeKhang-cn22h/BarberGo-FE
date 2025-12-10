@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
-import '../core/utils/api_config.dart';
+import 'endpoints/api_config.dart';
 import '../core/utils/auth_storage.dart';
-
+import 'endpoints/profile_endpoint.dart';
 class ProfileApi {
   // ==================== UPDATE PROFILE WITH FILE UPLOAD ====================
   Future<Map<String, dynamic>> updateProfile({
@@ -17,7 +17,7 @@ class ProfileApi {
       throw Exception('User ID not found');
     }
 
-    final url = ApiConfig.getUrlWithId(ApiConfig.usersUpdate, userId);
+    final url = ApiConfig.getUrlWithId(ProfileEndpoint.userUpdate, userId);
     print('PUT (multipart): $url');
 
     try {
@@ -98,7 +98,7 @@ class ProfileApi {
       throw Exception('User ID not found');
     }
 
-    final url = ApiConfig.getUrlWithId(ApiConfig.usersUpdate, userId);
+    final url = ApiConfig.getUrlWithId(ProfileEndpoint.userUpdate, userId);
     print('PUT (JSON): $url');
 
     try {
@@ -158,7 +158,7 @@ class ProfileApi {
       throw Exception('User ID not found');
     }
 
-    final url = ApiConfig.getUrlWithId(ApiConfig.usersUpdate, userId);
+    final url = ApiConfig.getUrlWithId(ProfileEndpoint.userUpdate, userId);
     print('PUT (avatar only): $url');
 
     try {
@@ -226,7 +226,7 @@ class ProfileApi {
       throw Exception('User ID not found');
     }
 
-    final url = ApiConfig.getUrlWithId(ApiConfig.usersGetById, userId);
+    final url = ApiConfig.getUrlWithId(ProfileEndpoint.userGetById, userId);
     print('GET: $url');
 
     try {
@@ -332,7 +332,7 @@ class ProfileApi {
       throw Exception('User ID not found');
     }
 
-    final url = ApiConfig.getUrlWithId(ApiConfig.usersDelete, userId);
+    final url = ApiConfig.getUrlWithId(ProfileEndpoint.userDelete, userId);
     print('DELETE: $url');
 
     try {
@@ -376,7 +376,7 @@ class ProfileApi {
     int page = 1,
     int limit = 20,
   }) async {
-    final url = '${ApiConfig.getUrl(ApiConfig.usersList)}?page=$page&limit=$limit';
+    final url = '${ApiConfig.getUrl(ProfileEndpoint.userGetAll)}?page=$page&limit=$limit';
     print('GET: $url');
 
     try {

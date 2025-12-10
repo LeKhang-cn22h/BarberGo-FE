@@ -1,14 +1,15 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../core/utils/api_config.dart';
+import 'endpoints/api_config.dart';
 import '../core/utils/auth_storage.dart';
 import '../models/booking/booking_model.dart';
+import 'endpoints/booking_endpoint.dart';
 
 class BookingApi {
 
   // ==================== CREATE BOOKING ====================
   Future<BookingCreateResponse> createBooking(BookingCreateRequest request) async {
-    final url = Uri.parse(ApiConfig.getUrl(ApiConfig.bookingCreate));
+    final url = Uri.parse(ApiConfig.getUrl(BookingEmdpoint.bookingCreate));
     print('POST: $url');
     print('Request body: ${json.encode(request.toJson())}');
 
@@ -39,7 +40,7 @@ class BookingApi {
 
   // ==================== GET BOOKINGS BY USER ====================
   Future<GetAllBookingsResponse> getBookingsByUser(String userId) async {
-    final url = Uri.parse(ApiConfig.getBookingsByUserUrl(userId));
+    final url = Uri.parse(ApiConfig.getUrlWithId(BookingEmdpoint.bookingGetByUser, userId));
     print('GET: $url');
 
     try {
@@ -67,8 +68,8 @@ class BookingApi {
   }
 
   // ==================== GET BOOKING BY ID ====================
-  Future<BookingModel> getBookingById(String bookingId) async {
-    final url = Uri.parse(ApiConfig.getBookingUrlWithId(bookingId));
+  Future<BookingModel> getBookingById(String id) async {
+    final url = Uri.parse(ApiConfig.getUrlWithId(BookingEmdpoint.bookingGetById, id));
     print('GET: $url');
 
     try {
@@ -100,7 +101,7 @@ class BookingApi {
       String bookingId,
       String status,
       ) async {
-    final url = Uri.parse(ApiConfig.getBookingStatusUpdateUrl(bookingId));
+    final url = Uri.parse(ApiConfig.getUrlWithId(BookingEmdpoint.bookingUpdateStatus, bookingId));
     final fullUrl = Uri.parse('$url?status=$status');
     print('PATCH: $fullUrl');
 
@@ -130,7 +131,7 @@ class BookingApi {
 
   // ==================== CANCEL BOOKING ====================
   Future<BookingStatusUpdateResponse> cancelBooking(String bookingId) async {
-    final url = Uri.parse(ApiConfig.getBookingCancelUrl(bookingId));
+    final url = Uri.parse(ApiConfig.getUrlWithId(BookingEmdpoint.bookingCancel,bookingId));
     print('PATCH: $url');
 
     try {

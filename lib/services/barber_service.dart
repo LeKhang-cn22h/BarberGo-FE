@@ -1,11 +1,12 @@
 import 'dart:convert';
 
 import 'package:barbergofe/api/barber_api.dart';
-import 'package:barbergofe/core/utils/api_config.dart';
+import 'package:barbergofe/api/endpoints/api_config.dart';
+import 'package:barbergofe/api/endpoints/barber_endpoint.dart';
 import 'package:barbergofe/core/utils/auth_storage.dart';
 import 'package:barbergofe/models/barber/barber_model.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:barbergofe/api/barber_api.dart';
 class BarberService {
   final BarberApi _barberApi = BarberApi();
 
@@ -33,9 +34,9 @@ class BarberService {
     }
   }
 
-  Future<BarberGetResponse> getBarberById(String id) async { // ĐỔI THÀNH BarberGetResponse
-    final url = ApiConfig.getBarberUrlWithId(id);
-    print('📞 GET: $url');
+  Future<BarberGetResponse> getBarberById(String id) async {
+    final url = ApiConfig.getUrlWithId(BarberEndpoint.barberGetById, id);
+    print(' GET: $url');
 
     try {
       final response = await http.get(
@@ -97,7 +98,7 @@ class BarberService {
           throw Exception('Barber data not found in response');
         }
 
-        print('✅ Successfully parsed barber: ${barber.name}');
+        print(' Successfully parsed barber: ${barber.name}');
 
         // Trả về BarberGetResponse
         return BarberGetResponse(
@@ -114,7 +115,7 @@ class BarberService {
         throw Exception(error['message'] ?? 'Failed to get barber details');
       }
     } catch (e) {
-      print('❌ Get barber by ID error: $e');
+      print(' Get barber by ID error: $e');
       rethrow;
     }
   }

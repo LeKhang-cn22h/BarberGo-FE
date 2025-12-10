@@ -2,14 +2,15 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
-import '../core/utils/api_config.dart';
+import 'endpoints/api_config.dart';
 import '../core/utils/auth_storage.dart';
 import '../models/barber/barber_model.dart';
+import 'endpoints/barber_endpoint.dart';
 class BarberApi {
 
   // ==================== GET TOP BARBERS ====================
   Future<GetAllBarbersResponse> getTopBarbers({int limit = 2}) async {
-    final url = Uri.parse(ApiConfig.getUrl(ApiConfig.barbertop)).replace(
+    final url = Uri.parse(ApiConfig.getUrl(BarberEndpoint.barberGetTop)).replace(
       queryParameters: {'limit': limit.toString()},
     );
 
@@ -73,7 +74,7 @@ class BarberApi {
 
   // ==================== GET ALL AREAS ====================
   Future<List<String>> getAreas() async {
-    final url = ApiConfig.getUrl(ApiConfig.barberarea);
+    final url = ApiConfig.getUrl(BarberEndpoint.barberGetAreas);
     print('GET: $url');
 
     try {
@@ -103,8 +104,8 @@ class BarberApi {
   }
   // api/barber_api.dart
   Future<BarberGetResponse> getBarberById(String id) async {
-    final url = ApiConfig.getBarberUrlWithId(id);
-    print('📞 GET: $url');
+    final url = ApiConfig.getUrlWithId(BarberEndpoint.barberGetById, id);
+    print('GET: $url');
 
     try {
       final response = await http.get(
@@ -166,7 +167,7 @@ class BarberApi {
           throw Exception('Barber data not found in response');
         }
 
-        print('✅ Successfully parsed barber: ${barber.name}');
+        print(' Successfully parsed barber: ${barber.name}');
 
         // TRẢ VỀ BarberGetResponse với SINGLE barber
         return BarberGetResponse(
@@ -183,14 +184,14 @@ class BarberApi {
         throw Exception(error['message'] ?? 'Failed to get barber details');
       }
     } catch (e) {
-      print('❌ Get barber by ID error: $e');
+      print('Get barber by ID error: $e');
       rethrow;
     }
   }
 
   // ==================== GET BARBERS BY AREA ====================
   Future<GetAllBarbersResponse> getBarbersByArea(String area) async {
-    final url = '${ApiConfig.getUrl(ApiConfig.barberareafocus)}/$area';
+    final url = '${ApiConfig.getUrl(BarberEndpoint.barberGetByArea)}/$area';
     print('GET: $url');
 
     try {

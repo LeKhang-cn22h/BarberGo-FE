@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../core/utils/api_config.dart';
+import 'endpoints/api_config.dart';
 import '../core/utils/auth_storage.dart';
 import '../models/service/service_model.dart';
-
+import 'endpoints/service_endpoint.dart';
 class ServiceApi {
 
   // ==================== GET ALL SERVICES ====================
   Future<GetAllServicesResponse> getAllServices() async {
-    final url = Uri.parse(ApiConfig.getUrl(ApiConfig.serviceGetAll));
+    final url = Uri.parse(ApiConfig.getUrl(ServiceEndpoint.serviceGetAll));
     print('GET: $url');
 
     try {
@@ -38,7 +38,7 @@ class ServiceApi {
   // ==================== GET SERVICE BY ID ====================
   Future<GetServiceByIdResponse> getServiceById(String serviceId) async {
     // Sửa: dùng getServiceUrlWithId thay vì getUrlWithId
-    final url = Uri.parse(ApiConfig.getServiceUrlWithId(serviceId));
+    final url = Uri.parse(ApiConfig.getUrlWithId(ServiceEndpoint.serviceGetById,serviceId));
     print('GET: $url');
 
     try {
@@ -68,7 +68,7 @@ class ServiceApi {
   // ==================== GET SERVICES BY BARBER ====================
   Future<GetServicesByBarberResponse> getServicesByBarber(String barberId) async {
     // Sửa: dùng getServiceByBarberUrl
-    final url = Uri.parse(ApiConfig.getServiceByBarberUrl(barberId));
+    final url = Uri.parse(ApiConfig.getUrlWithId(ServiceEndpoint.serviceGetByBarber,barberId));
     print('GET: $url');
 
     try {
