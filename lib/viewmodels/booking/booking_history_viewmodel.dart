@@ -66,6 +66,7 @@ class BookingHistoryViewModel extends ChangeNotifier {
       final response = await _bookingService.getUserBookings(userId);
       _allBookings = _bookingService.sortByDate(response.bookings);
       _applyFilter(_selectedFilter);
+      print('Fetched user bookings: ${_allBookings.length}');
       notifyListeners();
     } catch (e) {
       _error = e.toString();
