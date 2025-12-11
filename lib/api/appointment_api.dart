@@ -1,6 +1,8 @@
 // lib/services/api/appointment_api.dart
 import 'dart:convert';
-import 'package:barbergofe/core/utils/api_config.dart';
+import 'package:barbergofe/api/endpoints/appointment_endpoint.dart';
+
+import 'endpoints/api_config.dart';
 import 'package:barbergofe/core/utils/auth_storage.dart';
 import 'package:barbergofe/models/profile/appointment_model.dart';
 import 'package:http/http.dart' as http;
@@ -20,7 +22,7 @@ class AppointmentApi {
     required String email,
     String? token,
   }) async {
-    final url = ApiConfig.getUrl(ApiConfig.appointmentCreate);
+    final url = ApiConfig.getUrl(AppointmentEndpoint.appointmentCreate);
     final headers = ApiConfig.getHeaders(token: token);
 
     final body = jsonEncode({
@@ -53,7 +55,7 @@ class AppointmentApi {
     required String userId,
     required String token,
   }) async {
-    final url = '${ApiConfig.getUrl(ApiConfig.appointmentGetByUser)}/$userId';
+    final url = ApiConfig.getUrlWithId(AppointmentEndpoint.appointmentGetByUser, userId);
     final headers = ApiConfig.getHeaders(token: token);
 
     try {
@@ -80,7 +82,7 @@ class AppointmentApi {
     if (userId == null) {
       throw Exception('User ID not found');
     }
-    final url = ApiConfig.getUrlWithId(ApiConfig.appointmentGetByUser, userId);
+    final url = ApiConfig.getUrlWithId(AppointmentEndpoint.appointmentGetByUser, userId);
 
     try {
       final response = await http.get(
