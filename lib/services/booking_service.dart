@@ -116,9 +116,9 @@ class BookingService {
     final now = DateTime.now();
     return bookings.where((booking) {
       if (booking.status.toLowerCase() != 'confirmed') return false;
-      if (booking.timeSlot == null) return false;
+      if (booking.timeSlots == null) return false;
 
-      final slotDateStr = booking.timeSlot!['slot_date']?.toString();
+      final slotDateStr = booking.timeSlots!['slot_date']?.toString();
       if (slotDateStr == null) return false;
 
       try {
@@ -137,9 +137,9 @@ class BookingService {
   bool canCancelBooking(BookingModel booking) {
     if (booking.status.toLowerCase() != 'confirmed') return false;
 
-    if (booking.timeSlot == null) return true;
+    if (booking.timeSlots == null) return true;
 
-    final slotDateStr = booking.timeSlot!['slot_date']?.toString();
+    final slotDateStr = booking.timeSlots!['slot_date']?.toString();
     if (slotDateStr == null) return true;
 
     try {
