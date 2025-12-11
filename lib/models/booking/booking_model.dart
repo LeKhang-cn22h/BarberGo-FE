@@ -1,6 +1,4 @@
 import 'dart:convert';
-
-import 'package:flutter/animation.dart';
 import 'package:flutter/material.dart';
 
 // ==================== Booking Base Model ====================
@@ -14,10 +12,9 @@ class BookingModel {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
-  // Nested objects (from API joins)
+  // ⚠️ SỬA: Nested objects - KHỚP VỚI API
   final Map<String, dynamic>? user;
-  final Map<String, dynamic>? timeSlot;
-  final Map<String, dynamic>? barber;
+  final Map<String, dynamic>? timeSlots;  // ← SỬA: time_slots (có s)
   final List<Map<String, dynamic>>? services;
 
   BookingModel({
@@ -30,8 +27,7 @@ class BookingModel {
     this.createdAt,
     this.updatedAt,
     this.user,
-    this.timeSlot,
-    this.barber,
+    this.timeSlots,  // ← SỬA
     this.services,
   });
 
@@ -49,9 +45,15 @@ class BookingModel {
       updatedAt: json['updated_at'] != null
           ? DateTime.parse(json['updated_at'])
           : null,
-      user: json['user'] is Map ? Map<String, dynamic>.from(json['user']) : null,
-      timeSlot: json['time_slot'] is Map ? Map<String, dynamic>.from(json['time_slot']) : null,
-      barber: json['barber'] is Map ? Map<String, dynamic>.from(json['barber']) : null,
+      user: json['user'] is Map
+          ? Map<String, dynamic>.from(json['user'])
+          : null,
+
+      // ⚠️ SỬA: Parse time_slots (có s)
+      timeSlots: json['time_slots'] is Map
+          ? Map<String, dynamic>.from(json['time_slots'])
+          : null,
+
       services: json['services'] is List
           ? List<Map<String, dynamic>>.from(
           json['services'].map((x) => Map<String, dynamic>.from(x)))
@@ -70,13 +72,13 @@ class BookingModel {
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
       'user': user,
-      'time_slot': timeSlot,
-      'barber': barber,
+      'time_slots': timeSlots,  // ← SỬA
       'services': services,
     };
   }
 
-  // Helper methods
+  // ==================== HELPER METHODS - SỬA LẠI ====================
+
   String get formattedPrice {
     return '${totalPrice.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
@@ -99,25 +101,55 @@ class BookingModel {
   }
 
   String get formattedDate {
-    if (createdAt != null) {
-      return '${createdAt!.day}/${createdAt!.month}/${createdAt!.year}';
-    }
-    return '';
-  }
-
-  String get formattedTime {
-    if (timeSlot != null) {
-      final startTime = timeSlot!['start_time']?.toString() ?? '';
-      final endTime = timeSlot!['end_time']?.toString() ?? '';
-      if (startTime.isNotEmpty && endTime.isNotEmpty) {
-        return '$startTime - $endTime';
+    // ⚠️ SỬA: Lấy từ time_slots.slot_date
+    if (timeSlots != null && timeSlots!['slot_date'] != null) {
+      try {
+        final date = DateTime.parse(timeSlots!['slot_date']);
+        return '${date.day}/${date.month}/${date.year}';
+      } catch (e) {
+        return '';
       }
     }
     return '';
   }
 
+  String get formattedTime {
+    // ⚠️ SỬA: Lấy từ time_slots
+    if (timeSlots != null) {
+      final startTime = timeSlots!['start_time']?.toString() ?? '';
+      final endTime = timeSlots!['end_time']?.toString() ?? '';
+      if (startTime.isNotEmpty && endTime.isNotEmpty) {
+        // Format từ "09:00:00" → "09:00"
+        final start = startTime.substring(0, 5);
+        final end = endTime.substring(0, 5);
+        return '$start - $end';
+      }
+    }
+    return '';
+  }
+
+  // ⚠️ SỬA: Lấy barber từ time_slots.barbers
   String get barberName {
-    return barber?['name']?.toString() ?? 'Chưa xác định';
+    if (timeSlots != null && timeSlots!['barbers'] is Map) {
+      return timeSlots!['barbers']['name']?.toString() ?? 'Chưa xác định';
+    }
+    return 'Chưa xác định';
+  }
+
+  // ⚠️ SỬA: Lấy barber ID
+  String? get barberId {
+    if (timeSlots != null && timeSlots!['barbers'] is Map) {
+      return timeSlots!['barbers']['id']?.toString();
+    }
+    return null;
+  }
+
+  // ⚠️ SỬA: Lấy barber address
+  String get barberAddress {
+    if (timeSlots != null && timeSlots!['barbers'] is Map) {
+      return timeSlots!['barbers']['address']?.toString() ?? '';
+    }
+    return '';
   }
 
   List<String> get serviceNames {
@@ -187,8 +219,7 @@ class BookingModel {
     DateTime? createdAt,
     DateTime? updatedAt,
     Map<String, dynamic>? user,
-    Map<String, dynamic>? timeSlot,
-    Map<String, dynamic>? barber,
+    Map<String, dynamic>? timeSlots,  // ← SỬA
     List<Map<String, dynamic>>? services,
   }) {
     return BookingModel(
@@ -201,8 +232,7 @@ class BookingModel {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       user: user ?? this.user,
-      timeSlot: timeSlot ?? this.timeSlot,
-      barber: barber ?? this.barber,
+      timeSlots: timeSlots ?? this.timeSlots,  // ← SỬA
       services: services ?? this.services,
     );
   }
