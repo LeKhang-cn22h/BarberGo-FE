@@ -76,6 +76,7 @@ class BookingDetailSheet extends StatelessWidget {
                   // Booking info
                   _buildInfoSection('Thông tin đơn đặt', [
                     _buildInfoItem('Mã đơn', '#${booking.id}'),
+                    // ⚠️ SỬA: Dùng formattedDate (đã lấy từ timeSlots.slot_date)
                     _buildInfoItem('Ngày đặt', booking.formattedDate),
                     if (booking.createdAt != null)
                       _buildInfoItem(
@@ -87,27 +88,25 @@ class BookingDetailSheet extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Barber info
+                  // ⚠️ SỬA: Barber nằm trong timeSlots.barbers
                   _buildInfoSection('Tiệm tóc', [
+                    // ⚠️ SỬA: Dùng getter barberName
                     _buildInfoItem('Tên tiệm', booking.barberName),
-                    if (booking.barber?['location'] != null)
-                      _buildInfoItem(
-                        'Địa chỉ',
-                        booking.barber!['location']?.toString() ?? '',
-                      ),
+                    // ⚠️ SỬA: Dùng getter barberAddress
+                    if (booking.barberAddress.isNotEmpty)
+                      _buildInfoItem('Địa chỉ', booking.barberAddress),
                   ]),
 
                   const SizedBox(height: 24),
 
                   // Time slot
+                  // ⚠️ SỬA: timeSlots thay vì timeSlot
                   _buildInfoSection('Thời gian', [
+                    // ⚠️ SỬA: Dùng getter formattedTime
                     _buildInfoItem('Khung giờ', booking.formattedTime),
-                    if (booking.timeSlot?['slot_date'] != null)
-                      _buildInfoItem(
-                        'Ngày',
-                        DateFormat('dd/MM/yyyy').format(
-                          DateTime.parse(booking.timeSlot!['slot_date']),
-                        ),
-                      ),
+                    // ⚠️ SỬA: Dùng getter formattedDate
+                    if (booking.formattedDate.isNotEmpty)
+                      _buildInfoItem('Ngày', booking.formattedDate),
                   ]),
 
                   const SizedBox(height: 24),
@@ -128,7 +127,8 @@ class BookingDetailSheet extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                '${service['price']?.toString() ?? '0'}đ',
+                                // ⚠️ SỬA: Format giá với dấu chấm
+                                _formatPrice(service['price']),
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -253,5 +253,17 @@ class BookingDetailSheet extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  // ⚠️ THÊM: Helper method format giá
+  String _formatPrice(dynamic price) {
+    if (price == null) return '0đ';
+
+    final priceInt = price is int ? price : int.tryParse(price.toString()) ?? 0;
+
+    return '${priceInt.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]}.',
+    )}đ';
   }
 }
