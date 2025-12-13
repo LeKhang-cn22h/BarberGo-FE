@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:barbergofe/viewmodels/auth/auth_viewmodel.dart';
 import 'package:barbergofe/viewmodels/auth/sign_in_viewmodel.dart';
+import 'package:barbergofe/views/auth/widgets/gg_button.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -269,7 +270,10 @@ class _SigninPageContent extends StatelessWidget {
                                   ),
 
                                   const SizedBox(height: 16),
-
+                                  Align(
+                                    alignment: Alignment.center,
+                                    child: GgButton(authViewModel: authVM,),
+                                  ),
                                   Center(
                                     child: TextButton(
                                       onPressed: () {

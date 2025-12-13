@@ -1,9 +1,15 @@
 import 'package:barbergofe/core/utils/auth_storage.dart';
 import 'package:barbergofe/models/auth/user_model.dart';
 import 'package:barbergofe/services/auth_service.dart';
+import 'package:barbergofe/services/google_auth_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AuthViewModel extends ChangeNotifier {
+  final GoogleAuthService googleAuthService;
+  AuthViewModel({required this.googleAuthService});
+
+
   final AuthService _authService = AuthService();
 
   // ==================== STATE ====================
@@ -72,7 +78,7 @@ class AuthViewModel extends ChangeNotifier {
         phone: phone,
       );
 
-      print('✅ [AUTH VIEWMODEL] Registration successful');
+      print('[AUTH VIEWMODEL] Registration successful');
 
       _setSuccess(response.message);
       _setLoading(false);
@@ -80,7 +86,7 @@ class AuthViewModel extends ChangeNotifier {
       return true;
 
     } catch (e) {
-      print('❌ [AUTH VIEWMODEL] Registration failed: $e');
+      print(' [AUTH VIEWMODEL] Registration failed: $e');
       _setError(_formatErrorMessage(e));
       _setLoading(false);
       return false;
@@ -89,6 +95,38 @@ class AuthViewModel extends ChangeNotifier {
 
   // ==================== LOGIN ====================
 
+  Future<void> loginWithGG() async {
+    print('🟦 [AUTH VIEWMODEL] loginWithGG CALLED');
+
+    _setLoading(true);
+    _clearMessages();
+
+    try {
+      print('🟦 [AUTH VIEWMODEL] Calling googleAuthService.signIn()');
+
+      final account = await googleAuthService.signIn();
+
+      print('✅ [AUTH VIEWMODEL] Google account received');
+      print('✅ [AUTH VIEWMODEL] Google login successful');
+      _setLoading(false);
+
+    } on PlatformException catch (e) {
+      print('⚠️ [AUTH VIEWMODEL] PlatformException: ${e.code} - ${e.message}');
+      _setLoading(false);
+
+      if (e.code == 'sign_in_canceled' || e.code == 'canceled') {
+        print('ℹ️ User cancelled Google sign in');
+        return;
+      } else {
+        _setError('Lỗi đăng nhập Google: ${e.message ?? e.code}');
+      }
+
+    } catch (e) {
+      print('❌ [AUTH VIEWMODEL] Unexpected error: $e');
+      _setError('Có lỗi xảy ra khi đăng nhập');
+      _setLoading(false);
+    }
+  }
   Future<bool> login({
     required String email,
     required String password,
@@ -108,7 +146,7 @@ class AuthViewModel extends ChangeNotifier {
       _accessToken = response.accessToken;
       _userId = response.user.id;
 
-      print('✅ [AUTH VIEWMODEL] Login successful');
+      print('[AUTH VIEWMODEL] Login successful');
       print('   User: ${_currentUser?.fullName}');
       print('   User ID: $_userId');
 
@@ -118,7 +156,7 @@ class AuthViewModel extends ChangeNotifier {
       return true;
 
     } catch (e) {
-      print('❌ [AUTH VIEWMODEL] Login failed: $e');
+      print('[AUTH VIEWMODEL] Login failed: $e');
       _setError(_formatErrorMessage(e));
       _setLoading(false);
       return false;
@@ -154,7 +192,7 @@ class AuthViewModel extends ChangeNotifier {
     required String token,
     required String newPassword,
   }) async {
-    print('🟦 [AUTH VIEWMODEL] Reset password called');
+    print('[AUTH VIEWMODEL] Reset password called');
 
     _setLoading(true);
     _clearMessages();
@@ -198,15 +236,25 @@ class AuthViewModel extends ChangeNotifier {
       return false;
     }
   }
-
-  // ==================== LOGOUT ====================
+// ==================== LOGOUT ====================
 
   Future<void> logout() async {
     print('🟦 [AUTH VIEWMODEL] Logout called');
 
     try {
+      // Logout từ backend
       await _authService.logout();
 
+      // Logout từ Google (nếu đã đăng nhập bằng Google)
+      try {
+        await googleAuthService.signOut();
+        print('[AUTH VIEWMODEL] Google sign out successful');
+      } catch (googleError) {
+        print('[AUTH VIEWMODEL] Google sign out error (might not be signed in): $googleError');
+        // Không throw error vì có thể user không đăng nhập bằng Google
+      }
+
+      // Clear local state
       _currentUser = null;
       _accessToken = null;
       _userId = null;
@@ -214,10 +262,12 @@ class AuthViewModel extends ChangeNotifier {
 
       notifyListeners();
 
-      print('✅ [AUTH VIEWMODEL] Logout successful');
+      print('[AUTH VIEWMODEL] Logout successful');
 
     } catch (e) {
-      print('❌ [AUTH VIEWMODEL] Logout error: $e');
+      print('[AUTH VIEWMODEL] Logout error: $e');
+
+      // Vẫn clear local state dù có lỗi
       _currentUser = null;
       _accessToken = null;
       _userId = null;

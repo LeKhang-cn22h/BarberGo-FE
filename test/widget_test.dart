@@ -6,6 +6,7 @@
 // tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:barbergofe/app.dart';
+import 'package:barbergofe/services/google_auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -14,7 +15,7 @@ import 'package:barbergofe/main.dart';
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(googleAuthService: GoogleAuthService()));
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

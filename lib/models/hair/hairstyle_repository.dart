@@ -1,7 +1,7 @@
 import 'dart:async';  // ← Thêm import này
 import 'dart:convert';
 import 'dart:io';
-import 'package:barbergofe/core/utils/api_config.dart';
+import 'package:barbergofe/api/endpoints/api_config.dart';
 import 'package:barbergofe/models/hair/hairstyle_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';  // ← Thêm import này cho MediaType
