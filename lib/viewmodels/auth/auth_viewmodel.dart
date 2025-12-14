@@ -1,9 +1,16 @@
+import 'dart:async';
+
 import 'package:barbergofe/core/utils/auth_storage.dart';
 import 'package:barbergofe/models/auth/user_model.dart';
 import 'package:barbergofe/services/auth_service.dart';
 import 'package:barbergofe/services/google_auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:barbergofe/core/utils/auth_storage.dart';
+import 'dart:convert';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:barbergofe/api/auth_api.dart';
+
 
 class AuthViewModel extends ChangeNotifier {
   final GoogleAuthService googleAuthService;
@@ -11,6 +18,7 @@ class AuthViewModel extends ChangeNotifier {
 
 
   final AuthService _authService = AuthService();
+  final AuthApi _authApi=AuthApi();
 
   // ==================== STATE ====================
 
@@ -94,39 +102,118 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   // ==================== LOGIN ====================
-
-  Future<void> loginWithGG() async {
-    print('🟦 [AUTH VIEWMODEL] loginWithGG CALLED');
-
+  Future<bool> loginWithGG() async {
     _setLoading(true);
     _clearMessages();
 
+    final completer = Completer<bool>();
+    late StreamSubscription sub;
+
+    sub = googleAuthService.authEvents.listen(
+          (event) async {
+        print('📡 Auth event: $event');
+
+        if (event is! GoogleSignInAuthenticationEventSignIn) return;
+
+        final GoogleSignInAccount account = event.user;
+        print('Google account obtained');
+
+        final email = account.email;
+        final displayName = account.displayName;
+        final googleId = account.id;
+        final photoUrl = account.photoUrl;
+
+        final auth = account.authentication;
+        final idToken = auth.idToken;
+
+        final payload = {
+          'email': email,
+          'display_name': displayName,
+          'google_id': googleId,
+          'photo_url': photoUrl,
+          'id_token': idToken,
+        };
+
+        print('💾 SEND TO BACKEND');
+        print(jsonEncode(payload));
+
+        try {
+          // Gọi API và đợi response
+          final response = await _authService.loginGG(idToken: idToken.toString());
+
+          // Lưu vào state
+          _currentUser = response.user;
+          _accessToken = response.accessToken;
+          _userId = response.user.id;
+
+          notifyListeners();
+          _setLoading(false);
+
+          await sub.cancel();
+          completer.complete(true); // Báo thành công
+
+        } catch (e) {
+          print('Backend login failed: $e');
+          _setError('Đăng nhập thất bại: ${_formatErrorMessage(e)}');
+          _setLoading(false);
+          await sub.cancel();
+          completer.complete(false); // Báo thất bại
+        }
+      },
+      onError: (e) async {
+        print('Google Sign-In error: $e');
+        if (e is PlatformException && e.code == 'sign_in_canceled') {
+          print(' User cancelled Google Sign-In');
+          _setLoading(false);
+          await sub.cancel();
+          completer.complete(false);
+          return;
+        }
+
+        if (e.toString().contains('canceled') ||
+            e.toString().contains('cancelled')) {
+          print('User cancelled Google Sign-In');
+          _setLoading(false);
+          await sub.cancel();
+          completer.complete(false);
+          return;
+        }
+
+        // Các lỗi khác mới hiển thị error message
+        _setError('Đăng nhập Google thất bại');
+        _setLoading(false);
+        await sub.cancel();
+        completer.complete(false);
+      },
+    );
     try {
-      print('🟦 [AUTH VIEWMODEL] Calling googleAuthService.signIn()');
-
-      final account = await googleAuthService.signIn();
-
-      print('✅ [AUTH VIEWMODEL] Google account received');
-      print('✅ [AUTH VIEWMODEL] Google login successful');
-      _setLoading(false);
-
-    } on PlatformException catch (e) {
-      print('⚠️ [AUTH VIEWMODEL] PlatformException: ${e.code} - ${e.message}');
-      _setLoading(false);
-
-      if (e.code == 'sign_in_canceled' || e.code == 'canceled') {
-        print('ℹ️ User cancelled Google sign in');
-        return;
-      } else {
-        _setError('Lỗi đăng nhập Google: ${e.message ?? e.code}');
+      await googleAuthService.signIn();
+    } catch (e) {
+      // HANDLE: User cancel/dismiss dialog
+      if (e.toString().contains('canceled') ||
+          e.toString().contains('cancelled') ||
+          e.toString().contains('activity is cancelled by the user')) {
+        print('User cancelled Google Sign-In dialog');
+        _setLoading(false);
+        await sub.cancel();
+        return false;
       }
 
-    } catch (e) {
-      print('❌ [AUTH VIEWMODEL] Unexpected error: $e');
-      _setError('Có lỗi xảy ra khi đăng nhập');
+      // Lỗi khác
+      print(' Google Sign-In failed: $e');
+      _setError('Đăng nhập Google thất bại');
       _setLoading(false);
+      await sub.cancel();
+      return false;
     }
+
+    await googleAuthService.signIn();
+
+    return completer.future;
   }
+
+
+
   Future<bool> login({
     required String email,
     required String password,
