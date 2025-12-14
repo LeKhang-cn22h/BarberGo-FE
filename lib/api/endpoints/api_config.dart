@@ -1,6 +1,6 @@
 class ApiConfig {
   /// Development URL (local/test environment)
-  static const String devBaseUrl = "http://192.168.1.101:8000";
+  static const String devBaseUrl = "http://192.168.1.134:8000";
 
   /// Production URL (deploy environment)
   static const String prodBaseUrl = "https://your-production-url.com";

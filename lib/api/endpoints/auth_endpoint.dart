@@ -15,4 +15,6 @@ class AuthEndpoint{
 
   /// POST /users/reset-password - Đặt lại mật khẩu
   static const String authResetPassword = "/users/reset-password";
+
+  static const String googlelogin="/users/google";
 }

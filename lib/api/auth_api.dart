@@ -76,6 +76,30 @@ import 'endpoints/auth_endpoint.dart';
        rethrow;
      }
    }
+    Future<String?> loginGG({
+     required String id_token
+ }) async{
+     final url =ApiConfig.getUrl(AuthEndpoint.googlelogin);
+     print('POST: $url');
+     try{
+        final response= await http.post(Uri.parse(url),
+            headers: ApiConfig.getHeaders(),
+            body: jsonEncode({
+              'id_token':id_token
+            })
+        ).timeout(ApiConfig.timeout);
+        print('Status: ${response.statusCode}');
+        if (response.statusCode == 200) {
+          return response.body;
+        } else {
+          print(' API Error: ${response.body}');
+          throw Exception('Google login failed: ${response.statusCode} - ${response.body}');
+        }
+     }catch (e){
+       print('Login GG API Error: $e');
+       rethrow;
+     }
+    }
 
    // ==================== FORGOT PASSWORD ====================
 
