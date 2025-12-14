@@ -4,7 +4,7 @@ import 'package:barbergofe/viewmodels/auth/auth_viewmodel.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:path/path.dart';
 import 'package:provider/provider.dart';
-
+import 'package:go_router/go_router.dart';
 class GgButton extends StatelessWidget {
   final AuthViewModel authViewModel;
 
@@ -18,18 +18,17 @@ class GgButton extends StatelessWidget {
       child: Column(
         children: [
           ElevatedButton(onPressed: () async {
-            await authViewModel.loginWithGG();
-          }, child: Text("Login with Google"),
+           final success= await authViewModel.loginWithGG();
+           if (success){
+             context.goNamed('home');
+           }else if(!success && context.mounted){
+             ScaffoldMessenger.of(context).showSnackBar(
+               SnackBar(content: Text('Đăng nhập thất bại')),
+             );
+           }
+          }, child:
+          Text("Login with Google"),
           ),
-          // stream dùng để theo dõi trạng thái đăng nhập
-          StreamBuilder<GoogleSignInAuthenticationEvent>(stream: googleAuthService.authEvents, builder: (context, snapshot) {
-            if (snapshot.hasData){
-              return Text('Auth event: ${snapshot.data}');
-            }
-            return SizedBox.shrink();
-    }
-    )
-
         ],
       ),
     );

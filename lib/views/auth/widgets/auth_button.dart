@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:barbergofe/core/theme/button_styles.dart';
-
 class AppButton extends StatelessWidget {
   final VoidCallback onPressed;
-  final bool isLoading;
+  final bool enabled;
   final String text;
 
   const AppButton({
     super.key,
     required this.onPressed,
-    required this.isLoading,
+    required this.enabled,
     required this.text,
   });
 
@@ -17,14 +16,12 @@ class AppButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 50,
+      width: double.infinity,
       child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
-        child: isLoading
-            ? const CircularProgressIndicator(color: Colors.white)
-            : Text(
-          text
-        ),
+        onPressed: enabled ? onPressed : null,
+        child: Text(text),
       ),
     );
   }
 }
+
