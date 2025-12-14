@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:barbergofe/viewmodels/auth/auth_viewmodel.dart';
 import 'package:barbergofe/viewmodels/auth/sign_in_viewmodel.dart';
+import 'package:barbergofe/views/auth/widgets/GlobalLoading.dart';
 import 'package:barbergofe/views/auth/widgets/gg_button.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -38,12 +39,12 @@ class _SigninPageContent extends StatelessWidget {
     final validationPassed = await signInVM.signIn();
 
     if (!validationPassed) {
-      print('❌ Validation failed');
+      print(' Validation failed');
       return;
     }
 
     // Call login
-    print('🔵 Calling AuthViewModel.login()...');
+    print('Calling AuthViewModel.login()...');
 
     final success = await authVM.login(
       email: signInVM.emailController.text.trim(),
@@ -52,10 +53,10 @@ class _SigninPageContent extends StatelessWidget {
 
     // Navigate if success
     if (success && mounted) {
-      print('✅ Login successful, navigating to home...');
+      print('Login successful, navigating to home...');
       context.goNamed('home');
     } else {
-      print('❌ Login failed');
+      print(' Login failed');
     }
   }
 
@@ -65,7 +66,7 @@ class _SigninPageContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => SignInViewModel(),
-      child: Consumer2<SignInViewModel, AuthViewModel>( // ⭐ Listen to both
+      child: Consumer2<SignInViewModel, AuthViewModel>( //  Listen to both
         builder: (context, signInVM, authVM, _) {
           return Scaffold(
             extendBodyBehindAppBar: true,
@@ -263,16 +264,16 @@ class _SigninPageContent extends StatelessWidget {
                                   Align(
                                     alignment: Alignment.center,
                                     child: AppButton(
-                                      onPressed:() =>  _handleLogin(context, context.mounted), // ⭐ Use handler
-                                      isLoading: signInVM.isLoading || authVM.isLoading, // ⭐ Both loading
-                                      text: 'ĐĂNG NHẬP',
+                                      onPressed:() =>  _handleLogin(context, context.mounted), 
+                                      text: 'ĐĂNG NHẬP',   enabled: !authVM.isLoading && !signInVM.isLoading,
+
                                     ),
                                   ),
 
                                   const SizedBox(height: 16),
                                   Align(
                                     alignment: Alignment.center,
-                                    child: GgButton(authViewModel: authVM,),
+                                    child: GgButton(authViewModel: authVM),
                                   ),
                                   Center(
                                     child: TextButton(
@@ -317,6 +318,8 @@ class _SigninPageContent extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (authVM.isLoading)
+                    const GlobalLoading(),
                 ],
               ),
             ),

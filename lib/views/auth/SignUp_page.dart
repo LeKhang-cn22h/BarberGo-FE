@@ -350,9 +350,10 @@ class _SignupPageContent extends StatelessWidget {
                                 Align(
                                   alignment: Alignment.center,
                                   child: AppButton(
-                                    onPressed: () => _handleRegister(context), // ⭐ Pass context
-                                    isLoading: signUpVM.isLoading || authVM.isLoading,
+                                    onPressed: () => _handleRegister(context),
+                                    enabled: !authVM.isLoading && !signUpVM.isLoading,
                                     text: 'ĐĂNG KÝ',
+
                                   ),
                                 ),
 
