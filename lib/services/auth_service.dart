@@ -82,6 +82,42 @@ class AuthService {
     }
   }
 
+  Future<LoginResponse> loginGG({
+    required String idToken,
+  }) async {
+    print(' [SERVICE] Starting login...');
+
+    try {
+      final jsonString = await _api.loginGG(
+        id_token: idToken
+      );
+
+      final data = jsonDecode(jsonString!);
+      final response = LoginResponse.fromJson(data);
+
+      // Save auth data
+      await AuthStorage.saveAuthData(
+        accessToken: response.accessToken,
+        refreshToken: response.refreshToken,
+        userId: response.user.id,
+        email: response.user.email,
+        fullName: response.user.fullName,
+      );
+
+      print(' [SERVICE] Login successful');
+      print('   User: ${response.user.fullName}');
+
+      await AuthStorage.printAllData();
+
+      return response;
+
+    } catch (e, stackTrace) {
+      print(' [SERVICE] Login error: $e');
+      print('Stack trace: $stackTrace');
+      rethrow;
+    }
+  }
+
   // ==================== FORGOT PASSWORD ====================
 
   Future<Map<String, dynamic>> forgotPassword({
