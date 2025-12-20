@@ -283,7 +283,7 @@ class _BookingPageState extends State<BookingPage> {
                 hint: 'Chọn tiệm tóc',
                 content: bookingViewModel.selectedBarber?.name, // Hiển thị tên nếu đã chọn
                 onTap: () async {
-                  final result= await context.pushNamed('Barbers');
+                  final result= await context.pushNamed('ListArea');
                   if(result !=null && result is BarberModel){
                     setState(() {
                       _isLoading=true;

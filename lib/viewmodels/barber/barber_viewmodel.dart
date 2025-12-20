@@ -14,7 +14,7 @@ class BarberViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   String? _selectedArea;
-
+  String _keyword='';
   // Getters
   List<BarberModel> get topBarbers => _topBarbers;
   List<String> get areas => _areas;
@@ -64,7 +64,16 @@ class BarberViewModel extends ChangeNotifier {
       _setLoading(false);
     }
   }
-
+  List<String> get fillteredAreas{
+    if(_keyword.isEmpty) return _areas;
+    return _areas.where((area){
+      return area.toLowerCase().contains(_keyword.toLowerCase());
+    }).toList();
+  }
+  void onAreaSearch(String value){
+    _keyword=value;
+    notifyListeners();
+  }
   // Fetch barbers by area
   Future<void> fetchBarbersByArea(String area) async {
     _setLoading(true);

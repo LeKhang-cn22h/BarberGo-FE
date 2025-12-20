@@ -2,6 +2,7 @@
 
 import 'package:barbergofe/models/barber/barber_model.dart';
 import 'package:barbergofe/viewmodels/auth/auth_viewmodel.dart';
+import 'package:barbergofe/views/Barbers/Areas_page.dart';
 import 'package:barbergofe/views/booking/booking_page.dart';
 import 'package:barbergofe/views/booking/service_selection_page.dart';
 import 'package:barbergofe/views/location/location_picker_page.dart';
@@ -273,6 +274,11 @@ class AppRouter {
             name: 'hair',
             builder: (context, state) =>  CameraScreen()
         ),
+      GoRoute(path: RouteNames.ListArea,
+      name: 'ListArea',
+          builder: (context, state) =>  AreasPage(),
+
+      ),
 
       shellRoutes,
     ],

@@ -18,6 +18,7 @@ class RouteNames{
   static const Partneregistration='/PartnerRegistration';
   static const PartnerSignUpForm='/PartnerSignUpForm';
   static const AppointmentDetail='/AppointmentDetail';
+  static const ListArea='/listArea';
 //EROR
   static const String notFound = '/404';
 

@@ -258,4 +258,6 @@ class BookingViewModel extends ChangeNotifier {
   void clearLastBooking() {
     _lastBookingResponse = null;
   }
+
+  Future<void>
 }
