@@ -136,20 +136,6 @@ class ProfilePage extends StatelessWidget {
             ),
 
             const SizedBox(height: 24),
-
-            // Change Password
-            // ListTile(
-            //   leading: const Icon(Icons.lock_outline),
-            //   title: const Text('Đổi mật khẩu'),
-            //   trailing: const Icon(Icons.chevron_right),
-            //   onTap: () {
-            //     Navigator.pop(context);
-            //     context.pushNamed('changePass');
-            //   },
-            // ),
-            //
-            // const Divider(),
-
             // Logout
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
@@ -183,12 +169,12 @@ class ProfilePage extends StatelessWidget {
         content: const Text('Bạn có chắc chắn muốn đăng xuất không?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: const Text('Hủy'),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
+              context.pop();
 
               // Show loading
               showDialog(
@@ -204,7 +190,7 @@ class ProfilePage extends StatelessWidget {
 
               // Navigate to login
               if (context.mounted) {
-                Navigator.pop(context); // Close loading
+                context.pop(); // Close loading
                 context.goNamed('signin');
               }
             },

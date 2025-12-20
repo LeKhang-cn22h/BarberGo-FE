@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
 
@@ -159,7 +160,7 @@ class PermissionHelper {
         content: Text(message),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: Text('Đóng'),
           ),
         ],
@@ -190,7 +191,7 @@ class PermissionHelper {
         content: Text(message),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: Text(
               'Hủy',
               style: TextStyle(color: Colors.grey),
@@ -198,7 +199,7 @@ class PermissionHelper {
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
+              context.pop();
               openAppSettings(); // Mở Settings app
             },
             child: Text(

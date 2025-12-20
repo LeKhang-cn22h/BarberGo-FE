@@ -168,8 +168,11 @@ class AppRouter {
         path: RouteNames.detail,
         name: 'detail',
         builder: (context, state) {
-          final id = state.pathParameters['id'] ?? "";
-          return DetailShopPage(id: id);
+          final extra =state.extra as Map<String, dynamic>?;
+          final barberId=state.pathParameters['id'].toString();
+
+           final selectedServiceIds=(extra?['selectedServiceIds'] as List<String>?) ?? [];
+          return DetailShopPage(id: barberId, selectedServiceIds: selectedServiceIds);
         },
       ),
 

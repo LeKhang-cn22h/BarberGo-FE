@@ -1,6 +1,7 @@
 // screens/acne/acne_result_screen.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../models/acne/acne_response.dart';
 
 class AcneResultScreen extends StatelessWidget {
@@ -796,7 +797,7 @@ class AcneResultScreen extends StatelessWidget {
           Expanded(
             child: ElevatedButton.icon(
               onPressed: () {
-                Navigator.pop(context);
+                context.pop();
               },
               icon: const Icon(Icons.camera_alt),
               label: const Text('Chụp lại'),

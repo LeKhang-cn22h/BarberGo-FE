@@ -358,7 +358,7 @@ class _AcneCameraViewState extends State<AcneCameraView> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: const Text('Đã hiểu'),
           ),
         ],
@@ -376,12 +376,12 @@ class _AcneCameraViewState extends State<AcneCameraView> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
             child: const Text('Hủy'),
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
+              context.pop();
               openAppSettings();
             },
             child: const Text('Mở Cài đặt'),

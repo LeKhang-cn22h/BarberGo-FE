@@ -4,6 +4,8 @@ import 'package:barbergofe/services/barber_service.dart';
 
 class BarberViewModel extends ChangeNotifier {
   final BarberService _barberService = BarberService();
+  BarberModel? _selectedBarber;
+  BarberModel? get selectedBarber => _selectedBarber;
 
   // State
   List<BarberModel> _topBarbers = [];
@@ -81,7 +83,45 @@ class BarberViewModel extends ChangeNotifier {
       _setLoading(false);
     }
   }
+  Future<void> fetchBarberById(String barberId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
 
+    try {
+      final response = await _barberService.getBarberById(barberId);
+
+      if (response.barber != null) {
+        _selectedBarber = response.barber;
+
+        // Cũng thêm vào cache nếu chưa có
+        if (!_topBarbers.any((b) => b.id == barberId)) {
+          _topBarbers.add(response.barber!);
+        }
+
+        notifyListeners();
+      } else {
+        throw Exception('Barber not found');
+      }
+
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+  void clearSelectedBarber() {
+    _selectedBarber = null;
+    notifyListeners();
+  }
+  void selectBarber(BarberModel barber) {
+    _selectedBarber = barber;
+    notifyListeners();
+    print(' Selected barber: ${barber.name}');
+  }
   // Select area
   void selectArea(String area) {
     _selectedArea = area;

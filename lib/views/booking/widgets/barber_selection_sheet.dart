@@ -1,6 +1,7 @@
 import 'package:barbergofe/views/home/widgets/card_shop.dart';
 import 'package:flutter/material.dart';
 import 'package:barbergofe/models/barber/barber_model.dart';
+import 'package:go_router/go_router.dart';
 
 class BarberSelectionSheet extends StatefulWidget {
   final List<BarberModel> barbers;
@@ -35,7 +36,7 @@ class _BarberSelectionSheetState extends State<BarberSelectionSheet> {
                 ),
               ),
               IconButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => context.pop(),
                 icon: const Icon(Icons.close),
               ),
             ],

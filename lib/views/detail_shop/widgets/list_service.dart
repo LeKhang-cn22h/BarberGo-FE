@@ -5,13 +5,15 @@ import 'package:barbergofe/models/service/service_model.dart';
 class ListService extends StatefulWidget {
   final String id;
   final List<ServiceModel> services;
-  final ValueChanged<List<int>>? onSelectionChanged; // Đổi thành List<int>
+  final ValueChanged<List<int>>? onSelectionChanged;
+  final List<int>? initialSelectedIds;
 
   const ListService({
     super.key,
     required this.id,
     required this.services,
     this.onSelectionChanged,
+    this.initialSelectedIds,
   });
 
   @override
@@ -19,7 +21,7 @@ class ListService extends StatefulWidget {
 }
 
 class _ListServiceState extends State<ListService> {
-  Set<int> selectedServiceIds = {}; // Đổi thành Set<int>
+  Set<int> selectedServiceIds = {};
 
   @override
   Widget build(BuildContext context) {
