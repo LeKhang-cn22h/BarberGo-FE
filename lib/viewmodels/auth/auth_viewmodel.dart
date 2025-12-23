@@ -10,6 +10,7 @@ import 'package:barbergofe/core/utils/auth_storage.dart';
 import 'dart:convert';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:barbergofe/api/auth_api.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 
 class AuthViewModel extends ChangeNotifier {
@@ -141,6 +142,25 @@ class AuthViewModel extends ChangeNotifier {
           // Gọi API và đợi response
           final response = await _authService.loginGG(idToken: idToken.toString());
 
+          await AuthStorage.saveAuthData(
+            accessToken: response.accessToken,
+            refreshToken: response.refreshToken ?? '',
+            userId: response.user.id,
+            email: response.user.email,
+            fullName: response.user.fullName,
+          );
+
+          // 3. Set session vào Supabase (QUAN TRỌNG!)
+          if (response.refreshToken != null && response.refreshToken!.isNotEmpty) {
+            try {
+              await Supabase.instance.client.auth.recoverSession(
+                  '''{"access_token":"${response.accessToken}","refresh_token":"${response.refreshToken}"}'''
+              );
+              print('Supabase session restored');
+            } catch (sessionError) {
+              print('⚠Failed to set Supabase session: $sessionError');
+            }
+          }
           // Lưu vào state
           _currentUser = response.user;
           _accessToken = response.accessToken;
@@ -206,9 +226,6 @@ class AuthViewModel extends ChangeNotifier {
       await sub.cancel();
       return false;
     }
-
-    await googleAuthService.signIn();
-
     return completer.future;
   }
 

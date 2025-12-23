@@ -1,8 +1,7 @@
-// lib/routes/app_router.dart
-
 import 'package:barbergofe/models/barber/barber_model.dart';
 import 'package:barbergofe/viewmodels/auth/auth_viewmodel.dart';
 import 'package:barbergofe/views/Barbers/Areas_page.dart';
+import 'package:barbergofe/views/Barbers/Barbers_page.dart';
 import 'package:barbergofe/views/booking/booking_page.dart';
 import 'package:barbergofe/views/booking/service_selection_page.dart';
 import 'package:barbergofe/views/location/location_picker_page.dart';
@@ -36,8 +35,8 @@ import 'package:barbergofe/viewmodels/acne_viewmodel.dart';
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: RouteNames.getStarted,
+    debugLogDiagnostics: true,
 
-    // ==================== REDIRECT LOGIC ====================
     redirect: (context, state) async {
       print('[ROUTER] Checking redirect for: ${state.uri.path}');
 
@@ -49,7 +48,6 @@ class AppRouter {
 
       final currentPath = state.uri.path;
 
-      // ==================== PUBLIC ROUTES (Không cần auth) ====================
       final publicRoutes = [
         RouteNames.getStarted,
         RouteNames.signin,
@@ -61,29 +59,21 @@ class AppRouter {
 
       final isPublicRoute = publicRoutes.contains(currentPath);
 
-      // ==================== INTRO CHECK ====================
-
-      // 1. Chưa xem intro → vào intro
       if (!hasSeenIntro && currentPath != RouteNames.getStarted) {
         print('   → Redirect to intro');
         return RouteNames.getStarted;
       }
 
-      // 2. Đã xem + chưa login + đang ở intro → chuyển login
       if (hasSeenIntro && !isLoggedIn && currentPath == RouteNames.getStarted) {
         print('   → Redirect to sign in');
         return RouteNames.signin;
       }
 
-      // ==================== AUTH CHECK ====================
-
-      // 3. Đã login → không cho vào trang auth (trừ newPass và succes)
       if (isLoggedIn && _isAuthPage(currentPath)) {
         print('   → Already logged in, redirect to home');
         return RouteNames.home;
       }
 
-      // 4. Chưa login + không phải public route → redirect login
       if (!isLoggedIn && !isPublicRoute && _isProtectedPage(currentPath)) {
         print('   → Not logged in, redirect to sign in');
         return RouteNames.signin;
@@ -93,59 +83,54 @@ class AppRouter {
       return null;
     },
 
-    // ==================== ROUTES ====================
     routes: [
+      // ==================== AUTH ROUTES ====================
       GoRoute(
         path: RouteNames.getStarted,
         name: 'intro',
-        builder: (context, state) => const IntroScreen(),
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: const IntroScreen(),
+        ),
       ),
 
       GoRoute(
         path: RouteNames.signin,
         name: 'signin',
-        builder: (context, state) => const SignInPage(),
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: const SignInPage(),
+        ),
       ),
 
       GoRoute(
         path: RouteNames.signup,
         name: 'signup',
-        builder: (context, state) => const SignupPage(),
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: const SignupPage(),
+        ),
       ),
-
-      // GoRoute(
-      //   path: RouteNames.otp,
-      //   name: 'otp',
-      //   builder: (context, state) => const OtpPage(),
-      // ),
 
       GoRoute(
         path: RouteNames.forgot,
         name: 'forgot',
-        builder: (context, state) => const ForgotpassPage(),
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: const ForgotpassPage(),
+        ),
       ),
 
-      // ==================== RESET PASSWORD ====================
       GoRoute(
         path: RouteNames.newPass,
         name: 'newpass',
-        builder: (context, state) {
-          print(' [ROUTER] Building NewPass page');
-          print('   URI: ${state.uri}');
-          print('   Query params: ${state.uri.queryParameters}');
-
-          // Get parameters from URL query
+        pageBuilder: (context, state) {
           final email = state.uri.queryParameters['email'] ?? '';
           final token = state.uri.queryParameters['token'] ?? '';
 
-          print('   Email: $email');
-          print('   Token: ${token.isNotEmpty ? "exists (${token.length} chars)" : "empty"}');
-
-          // ✅ BỎ CHECK TOKEN Ở ĐÂY
-          // Để NewpassPage tự handle việc hiển thị error
-          return NewpassPage(
-            email: email,
-            token: token,
+          return MaterialPage(
+            key: state.pageKey,
+            child: NewpassPage(email: email, token: token),
           );
         },
       ),
@@ -153,133 +138,168 @@ class AppRouter {
       GoRoute(
         path: RouteNames.succes,
         name: 'succes',
-        builder: (context, state) => const SuccesPage(),
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: const SuccesPage(),
+        ),
       ),
 
+      // ==================== FEATURE ROUTES ====================
       GoRoute(
         path: RouteNames.acnes,
         name: 'acne',
-        builder: (context, state) => ChangeNotifierProvider(
-          create: (_) => AcneViewModel(),
-          child: const AcneCameraView(),
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: ChangeNotifierProvider(
+            create: (_) => AcneViewModel(),
+            child: const AcneCameraView(),
+          ),
         ),
       ),
 
       GoRoute(
-        path: RouteNames.detail,
-        name: 'detail',
-        builder: (context, state) {
-          final extra =state.extra as Map<String, dynamic>?;
-          final barberId=state.pathParameters['id'].toString();
+        path: RouteNames.hair,
+        name: 'hair',
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: CameraScreen(),
+        ),
+      ),
 
-           final selectedServiceIds=(extra?['selectedServiceIds'] as List<String>?) ?? [];
-          return DetailShopPage(id: barberId, selectedServiceIds: selectedServiceIds);
+      // ==================== BARBER ROUTES ====================
+
+      // 1. List Areas
+      GoRoute(
+        path: RouteNames.ListArea,
+        name: 'ListArea',
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: AreasPage(),
+        ),
+      ),
+
+      // 2. List Barbers by Area
+      GoRoute(
+        path: RouteNames.Barbers,  // '/Barbers'
+        name: 'Barbers',
+        pageBuilder: (context, state) {
+          final area = state.extra as String?;
+
+          return MaterialPage(
+            key: state.pageKey,
+            child: area != null
+                ? BarbersPage(area: area)
+                : Scaffold(
+              appBar: AppBar(title: Text('Error')),
+              body: Center(child: Text('Missing area parameter')),
+            ),
+          );
+        },
+      ),
+
+      // 3. Barber Detail (with path parameter)
+      GoRoute(
+        path: RouteNames.detail,  // '/detail/:id'
+        name: 'detail',
+        pageBuilder: (context, state) {
+          final barberId = state.pathParameters['id']!;
+          final extra = state.extra as Map<String, dynamic>?;
+          final selectedServiceIds = (extra?['selectedServiceIds'] as List<String>?) ?? [];
+
+          return MaterialPage(
+            key: state.pageKey,  // QUAN TRỌNG
+            child: DetailShopPage(
+              id: barberId,
+              selectedServiceIds: selectedServiceIds,
+            ),
+          );
         },
       ),
 
       GoRoute(
+        path: '/service-selection',
+        name: 'service-selection',
+        pageBuilder: (context, state) {
+          final args = state.extra as Map<String, dynamic>?;
+
+          return MaterialPage(
+            key: state.pageKey,
+            child: ServiceSelectionPage(
+              barberId: args?['barberId'] as String,
+              selectedServiceIds: (args?['selectedServiceIds'] as List<dynamic>?)
+                  ?.map((id) => id as int)
+                  .toList() ?? [],
+            ),
+          );
+        },
+      ),
+
+      // ==================== PROFILE ROUTES ====================
+      GoRoute(
         path: RouteNames.personal,
         name: 'personal',
-        builder: (context, state) => const PersonalInfoPage(),
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: const PersonalInfoPage(),
+        ),
       ),
 
       GoRoute(
         path: RouteNames.changePass,
         name: 'changePass',
-        builder: (context, state) => const ChangePasswordPage(),
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: const ChangePasswordPage(),
+        ),
       ),
+
       GoRoute(
         path: RouteNames.locationPicker,
         name: 'location_picker',
-        builder: (context, state) {
-          // Get optional initial position
+        pageBuilder: (context, state) {
           final lat = state.uri.queryParameters['lat'];
           final lng = state.uri.queryParameters['lng'];
           final address = state.uri.queryParameters['address'];
 
-          return LocationPickerPage(
-            initialLat: lat != null ? double.tryParse(lat) : null,
-            initialLng: lng != null ? double.tryParse(lng) : null,
-            initialAddress: address,
-          );
-        },
-      ),
-      GoRoute(
-          path: RouteNames.Partneregistration,
-          name: 'Partneregistration',
-          builder: (context, state) => const PartnerRegistrationScreen()
-      ),
-      GoRoute(
-          path: RouteNames.PartnerSignUpForm,
-          name: 'PartnerSignUpForm',
-          builder: (context, state) => const PartnerSignUpFormScreenV2()
-      ),
-      GoRoute(
-          path: '/AppointmentDetail', // ← THÊM :appointmentId
-          name: 'AppointmentDetail',
-          builder: (context, state) {
-            return AppointmentDetailScreen();
-          }
-      ),
-      // Trong router configuration
-      GoRoute(
-        path: '/service-selection',
-        name: 'service-selection',
-        builder: (context, state) {
-          final args = state.extra as Map<String, dynamic>?;
-          return ServiceSelectionPage(
-            barberId: args?['barberId'] as String,
-            selectedServiceIds: (args?['selectedServiceIds'] as List<dynamic>?)
-                ?.map((id) => id as int)
-                .toList() ?? [],
-          );
-        },
-      ),
-      GoRoute(
-        path: '/booking',
-        name: 'booking',
-        builder: (context, state) {
-          final args = state.extra as Map<String, dynamic>?;
-
-          // Chuyển đổi serviceIds thành List<String>
-          List<String> serviceIds = [];
-
-          if (args?['serviceIds'] != null) {
-            final dynamic rawIds = args!['serviceIds'];
-            if (rawIds is List<int>) {
-              // Nếu là List<int>, chuyển sang List<String>
-              serviceIds = rawIds.map((id) => id.toString()).toList();
-            } else if (rawIds is List<String>) {
-              // Nếu đã là List<String>, giữ nguyên
-              serviceIds = rawIds;
-            } else if (rawIds is List<dynamic>) {
-              // Nếu là List<dynamic>, chuyển sang String
-              serviceIds = rawIds.map((id) => id.toString()).toList();
-            }
-          }
-
-          print('=== ROUTER DEBUG ===');
-          print('Raw serviceIds: ${args?['serviceIds']}');
-          print('Type: ${args?['serviceIds']?.runtimeType}');
-          print('Converted to String: $serviceIds');
-
-          return BookingPage(
-            initialBarber: args?['barber'] as BarberModel?,
-            initialServiceIds: serviceIds, // Luôn là List<String>
+          return MaterialPage(
+            key: state.pageKey,
+            child: LocationPickerPage(
+              initialLat: lat != null ? double.tryParse(lat) : null,
+              initialLng: lng != null ? double.tryParse(lng) : null,
+              initialAddress: address,
+            ),
           );
         },
       ),
 
-        GoRoute(path: RouteNames.hair,
-            name: 'hair',
-            builder: (context, state) =>  CameraScreen()
+      GoRoute(
+        path: RouteNames.Partneregistration,
+        name: 'Partneregistration',
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: const PartnerRegistrationScreen(),
         ),
-      GoRoute(path: RouteNames.ListArea,
-      name: 'ListArea',
-          builder: (context, state) =>  AreasPage(),
-
       ),
 
+      GoRoute(
+        path: RouteNames.PartnerSignUpForm,
+        name: 'PartnerSignUpForm',
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: const PartnerSignUpFormScreenV2(),
+        ),
+      ),
+
+      GoRoute(
+        path: '/AppointmentDetail',
+        name: 'AppointmentDetail',
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: AppointmentDetailScreen(),
+        ),
+      ),
+
+      // ==================== SHELL ROUTES ====================
       shellRoutes,
     ],
 
@@ -287,7 +307,6 @@ class AppRouter {
   );
 
   // ==================== HELPERS ====================
-
   static bool _isAuthPage(String path) {
     return path == RouteNames.signin ||
         path == RouteNames.signup ||

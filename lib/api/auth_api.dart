@@ -15,7 +15,7 @@ import 'endpoints/auth_endpoint.dart';
      try {
        final response = await http.post(
          Uri.parse(url),
-         headers: ApiConfig.getHeaders(),
+         headers: await ApiConfig.getHeaders(),
          body: jsonEncode({
            'email': email,
            'password': password,
@@ -52,7 +52,7 @@ import 'endpoints/auth_endpoint.dart';
      try {
        final response = await http.post(
          Uri.parse(url),
-         headers: ApiConfig.getHeaders(),
+         headers:await ApiConfig.getHeaders(),
          body: jsonEncode({
            'email': email,
            'password': password,
@@ -83,7 +83,7 @@ import 'endpoints/auth_endpoint.dart';
      print('POST: $url');
      try{
         final response= await http.post(Uri.parse(url),
-            headers: ApiConfig.getHeaders(),
+            headers:await ApiConfig.getHeaders(),
             body: jsonEncode({
               'id_token':id_token
             })
@@ -110,7 +110,7 @@ import 'endpoints/auth_endpoint.dart';
      try {
        final response = await http.post(
          Uri.parse(url),
-         headers: ApiConfig.getHeaders(),
+         headers:await ApiConfig.getHeaders(),
          body: jsonEncode({'email': email}),
        ).timeout(ApiConfig.timeout);
 
@@ -139,7 +139,7 @@ import 'endpoints/auth_endpoint.dart';
      try {
        final response = await http.post(
          Uri.parse(url),
-         headers: ApiConfig.getHeaders(),
+         headers:await ApiConfig.getHeaders(),
          body: jsonEncode({
            'email': email,
            'token': token,
@@ -168,7 +168,7 @@ import 'endpoints/auth_endpoint.dart';
      try {
        final response = await http.post(
          Uri.parse(url),
-         headers: ApiConfig.getHeaders(),
+         headers:await ApiConfig.getHeaders(),
          body: jsonEncode({'email': email}),
        ).timeout(ApiConfig.timeout);
 

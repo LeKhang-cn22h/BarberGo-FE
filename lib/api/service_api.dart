@@ -14,7 +14,7 @@ class ServiceApi {
     try {
       final response = await http.get(
         url,
-        headers: ApiConfig.getHeaders(
+        headers:await ApiConfig.getHeaders(
           token: await AuthStorage.getAccessToken(),
         ),
       ).timeout(ApiConfig.timeout);
@@ -37,14 +37,13 @@ class ServiceApi {
 
   // ==================== GET SERVICE BY ID ====================
   Future<GetServiceByIdResponse> getServiceById(String serviceId) async {
-    // Sửa: dùng getServiceUrlWithId thay vì getUrlWithId
     final url = Uri.parse(ApiConfig.getUrlWithId(ServiceEndpoint.serviceGetById,serviceId));
     print('GET: $url');
 
     try {
       final response = await http.get(
         url,
-        headers: ApiConfig.getHeaders(
+        headers:await ApiConfig.getHeaders(
           token: await AuthStorage.getAccessToken(),
         ),
       ).timeout(ApiConfig.timeout);
@@ -67,14 +66,13 @@ class ServiceApi {
 
   // ==================== GET SERVICES BY BARBER ====================
   Future<GetServicesByBarberResponse> getServicesByBarber(String barberId) async {
-    // Sửa: dùng getServiceByBarberUrl
     final url = Uri.parse(ApiConfig.getUrlWithId(ServiceEndpoint.serviceGetByBarber,barberId));
     print('GET: $url');
 
     try {
       final response = await http.get(
         url,
-        headers: ApiConfig.getHeaders(
+        headers:await ApiConfig.getHeaders(
           token: await AuthStorage.getAccessToken(),
         ),
       ).timeout(ApiConfig.timeout);
@@ -85,6 +83,34 @@ class ServiceApi {
       if (response.statusCode == 200) {
         final dynamic jsonResponse = json.decode(response.body);
         return GetServicesByBarberResponse.fromJson(jsonResponse);
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to get services by barber');
+      }
+    } catch (e) {
+      print('Get services by barber error: $e');
+      rethrow;
+    }
+  }
+
+  Future<ServiceResponsePrice> getPriceRange(String barberId) async {
+    final url = Uri.parse(ApiConfig.getUrlWithId(ServiceEndpoint.serviceGetPriceRange,barberId));
+    print('GET: $url');
+
+    try {
+      final response = await http.get(
+        url,
+        headers:await ApiConfig.getHeaders(
+          token: await AuthStorage.getAccessToken(),
+        ),
+      ).timeout(ApiConfig.timeout);
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final dynamic jsonResponse = json.decode(response.body);
+        return ServiceResponsePrice.fromJson(jsonResponse);
       } else {
         final error = json.decode(response.body);
         throw Exception(error['message'] ?? 'Failed to get services by barber');

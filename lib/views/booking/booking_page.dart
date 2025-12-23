@@ -55,7 +55,6 @@ class _BookingPageState extends State<BookingPage> {
       _initializeData();
     }
   }
-
   // ==========================================
   // PHẦN 1: LOGIC KHỞI TẠO DỮ LIỆU (QUAN TRỌNG)
   // ==========================================
@@ -255,15 +254,6 @@ class _BookingPageState extends State<BookingPage> {
     final bookingViewModel = context.watch<BookingViewModel>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Đặt lịch'),
-        centerTitle: true,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.goNamed('home'), // Quay về Home
-        ),
-      ),
       body: SafeArea(
         // Kiểm tra 3 trạng thái: Đang tải -> Lỗi -> Hiển thị nội dung
         child: _isLoading

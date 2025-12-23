@@ -19,7 +19,7 @@ class BarberApi {
     try {
       final response = await http.get(
         url,
-        headers: ApiConfig.getHeaders(
+        headers: await ApiConfig.getHeaders(
           token: await AuthStorage.getAccessToken(),
         ),
       ).timeout(ApiConfig.timeout);
@@ -80,7 +80,7 @@ class BarberApi {
     try {
       final response = await http.get(
         Uri.parse(url),
-        headers: ApiConfig.getHeaders(
+        headers:await ApiConfig.getHeaders(
           token: await AuthStorage.getAccessToken(),
         ),
       ).timeout(ApiConfig.timeout);
@@ -110,7 +110,7 @@ class BarberApi {
     try {
       final response = await http.get(
         Uri.parse(url),
-        headers: ApiConfig.getHeaders(
+        headers:await ApiConfig.getHeaders(
           token: await AuthStorage.getAccessToken(),
         ),
       ).timeout(ApiConfig.timeout);
@@ -191,13 +191,15 @@ class BarberApi {
 
   // ==================== GET BARBERS BY AREA ====================
   Future<GetAllBarbersResponse> getBarbersByArea(String area) async {
-    final url = '${ApiConfig.getUrl(BarberEndpoint.barberGetByArea)}/$area';
+    final url = Uri.parse(ApiConfig.getUrl(BarberEndpoint.barberGetByArea)).replace(
+      queryParameters: {'area': area},
+    );
     print('GET: $url');
 
     try {
       final response = await http.get(
-        Uri.parse(url),
-        headers: ApiConfig.getHeaders(
+        url,
+        headers:await ApiConfig.getHeaders(
           token: await AuthStorage.getAccessToken(),
         ),
       ).timeout(ApiConfig.timeout);

@@ -6,8 +6,10 @@ import 'package:barbergofe/viewmodels/auth/auth_viewmodel.dart';
 import 'package:barbergofe/viewmodels/barber/barber_viewmodel.dart';
 import 'package:barbergofe/viewmodels/booking/booking_history_viewmodel.dart';
 import 'package:barbergofe/viewmodels/booking/booking_viewmodel.dart';
+import 'package:barbergofe/viewmodels/chat/Chat_viewmodel.dart';
 import 'package:barbergofe/viewmodels/home/home_viewmodel.dart';
 import 'package:barbergofe/viewmodels/profile/profile_viewmodel.dart';
+import 'package:barbergofe/viewmodels/rating/rating_viewmodel.dart';
 import 'package:barbergofe/viewmodels/service/service_viewmodel.dart';
 import 'package:barbergofe/viewmodels/time_slot/time_slot_viewmodel.dart';
 import 'package:flutter/material.dart';
@@ -46,6 +48,9 @@ class MyApp extends StatelessWidget {
       ChangeNotifierProvider(create: (_) => BookingViewModel()),
       ChangeNotifierProvider(create: (_) => TimeSlotViewModel()),
       ChangeNotifierProvider(create: (_) => BookingHistoryViewModel()),
+      ChangeNotifierProvider(create: (_) => ChatViewModel()),
+      ChangeNotifierProvider(create: (_) => RatingViewModel()),
+
 
 
     ],

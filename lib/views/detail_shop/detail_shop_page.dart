@@ -298,7 +298,6 @@ class _DetailShopPageState extends State<DetailShopPage> {
             child: _buildServicesContent(serviceViewModel),
           ),
 
-          // SECTION 6: Nút "Tiếp tục" đến trang booking
           // Chỉ enable khi đã chọn ít nhất 1 dịch vụ
           NextButton(
             onPressed: _selectedServiceIds.isNotEmpty

@@ -27,7 +27,7 @@ class GgButton extends StatelessWidget {
              );
            }
           }, child:
-          Text("Login with Google"),
+          Text("Đăng nhập Google"),
           ),
         ],
       ),

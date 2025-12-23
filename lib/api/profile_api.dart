@@ -104,7 +104,7 @@ class ProfileApi {
     try {
       final response = await http.put(
         Uri.parse(url),
-        headers: ApiConfig.getHeaders(
+        headers:await ApiConfig.getHeaders(
           token: await AuthStorage.getAccessToken(),
         ),
         body: json.encode({
@@ -232,7 +232,7 @@ class ProfileApi {
     try {
       final response = await http.get(
         Uri.parse(url),
-        headers: ApiConfig.getHeaders(
+        headers:await ApiConfig.getHeaders(
           token: await AuthStorage.getAccessToken(),
         ),
       ).timeout(ApiConfig.timeout);
@@ -288,7 +288,7 @@ class ProfileApi {
     try {
       final response = await http.post(
         Uri.parse(url),
-        headers: ApiConfig.getHeaders(
+        headers:await ApiConfig.getHeaders(
           token: await AuthStorage.getAccessToken(),
         ),
         body: json.encode({
@@ -338,7 +338,7 @@ class ProfileApi {
     try {
       final response = await http.delete(
         Uri.parse(url),
-        headers: ApiConfig.getHeaders(
+        headers:await ApiConfig.getHeaders(
           token: await AuthStorage.getAccessToken(),
         ),
       ).timeout(ApiConfig.timeout);
@@ -382,7 +382,7 @@ class ProfileApi {
     try {
       final response = await http.get(
         Uri.parse(url),
-        headers: ApiConfig.getHeaders(
+        headers:await ApiConfig.getHeaders(
           token: await AuthStorage.getAccessToken(),
         ),
       ).timeout(ApiConfig.timeout);
