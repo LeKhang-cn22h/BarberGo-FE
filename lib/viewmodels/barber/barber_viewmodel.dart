@@ -93,7 +93,7 @@ class BarberViewModel extends ChangeNotifier {
     }
   }
   Future<void> fetchBarberById(String barberId) async {
-    _isLoading = true;
+    _setLoading (true);
     _error = null;
     notifyListeners();
 
@@ -118,7 +118,7 @@ class BarberViewModel extends ChangeNotifier {
       notifyListeners();
       rethrow;
     } finally {
-      _isLoading = false;
+      _setLoading(false);
       notifyListeners();
     }
   }
@@ -153,6 +153,16 @@ class BarberViewModel extends ChangeNotifier {
   // Clear error
   void clearError() {
     _error = null;
+    notifyListeners();
+  }
+  List<BarberModel> get filteredBarberAreas{
+    if(_keyword.isEmpty) return _areaBarbers;
+    return _areaBarbers.where((areaBarber){
+      return areaBarber.name.toLowerCase().contains(_keyword.toLowerCase());
+    }).toList();
+  }
+  void onBarberSearch(String value) {
+    _keyword = value;
     notifyListeners();
   }
 }

@@ -41,8 +41,8 @@ class BarberService {
     try {
       final response = await http.get(
         Uri.parse(url),
-        headers: ApiConfig.getHeaders(
-          token: await AuthStorage.getAccessToken(),
+        headers:await ApiConfig.getHeaders(
+          token:await AuthStorage.getAccessToken(),
         ),
       ).timeout(ApiConfig.timeout);
 

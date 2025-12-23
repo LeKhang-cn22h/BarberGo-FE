@@ -45,18 +45,6 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
     final viewModel = context.watch<BookingHistoryViewModel>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Lịch sử đặt lịch'),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () {
-              viewModel.refreshUserBookings();
-            },
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
-      ),
       body: Column(
         children: [
           // Statistics toggle
@@ -68,6 +56,12 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
                 const Text(
                   'Thống kê',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  onPressed: () {
+                    viewModel.refreshUserBookings();
+                  },
+                  icon: const Icon(Icons.refresh),
                 ),
                 Switch(
                   value: _showStatistics,

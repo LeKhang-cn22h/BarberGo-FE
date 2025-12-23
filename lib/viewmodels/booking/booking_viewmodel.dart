@@ -151,7 +151,7 @@ class BookingViewModel extends ChangeNotifier {
     _lastBookingResponse = null;
 
     try {
-      print('📤 Creating booking...');
+      print(' Creating booking...');
       print('   Barber: ${_selectedBarber!.name}');
       print('   Services: ${_selectedServices.length}');
       print('   Time slot: ${_selectedTimeSlot!.displayText}');
@@ -174,12 +174,12 @@ class BookingViewModel extends ChangeNotifier {
         status: 'confirmed',
       );
 
-      print('📤 Booking request: ${request.toJson()}');
+      print(' Booking request: ${request.toJson()}');
 
       // Gọi API tạo booking thực tế
       final response = await _bookingService.createBooking(request);
 
-      print('✅ Booking created successfully!');
+      print('Booking created successfully!');
       print('   Booking ID: ${response.booking.id}');
       print('   Status: ${response.booking.status}');
       print('   Message: ${response.message}');
@@ -193,7 +193,7 @@ class BookingViewModel extends ChangeNotifier {
       return response;
 
     } catch (e) {
-      print('❌ Error creating booking: $e');
+      print(' Error creating booking: $e');
       _error = 'Không thể đặt lịch: ${e.toString()}';
       notifyListeners();
       rethrow;
@@ -258,6 +258,4 @@ class BookingViewModel extends ChangeNotifier {
   void clearLastBooking() {
     _lastBookingResponse = null;
   }
-
-  Future<void>
 }

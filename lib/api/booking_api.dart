@@ -16,7 +16,7 @@ class BookingApi {
     try {
       final response = await http.post(
         url,
-        headers: ApiConfig.getHeaders(
+        headers: await ApiConfig.getHeaders(
           token: await AuthStorage.getAccessToken(),
         ),
         body: json.encode(request.toJson()),
@@ -46,7 +46,7 @@ class BookingApi {
     try {
       final response = await http.get(
         url,
-        headers: ApiConfig.getHeaders(
+        headers: await ApiConfig.getHeaders(
           token: await AuthStorage.getAccessToken(),
         ),
       ).timeout(ApiConfig.timeout);
@@ -75,7 +75,7 @@ class BookingApi {
     try {
       final response = await http.get(
         url,
-        headers: ApiConfig.getHeaders(
+        headers: await ApiConfig.getHeaders(
           token: await AuthStorage.getAccessToken(),
         ),
       ).timeout(ApiConfig.timeout);
@@ -108,7 +108,7 @@ class BookingApi {
     try {
       final response = await http.patch(
         fullUrl,
-        headers: ApiConfig.getHeaders(
+        headers: await ApiConfig.getHeaders(
           token: await AuthStorage.getAccessToken(),
         ),
       ).timeout(ApiConfig.timeout);
@@ -131,13 +131,13 @@ class BookingApi {
 
   // ==================== CANCEL BOOKING ====================
   Future<BookingStatusUpdateResponse> cancelBooking(String bookingId) async {
-    final url = Uri.parse(ApiConfig.getUrlWithId(BookingEmdpoint.bookingCancel,bookingId));
+    final url = Uri.parse(ApiConfig.getUrlWithIdAndAction(BookingEmdpoint.bookingCancel,bookingId, BookingEmdpoint.bookingCancelAction));
     print('PATCH: $url');
 
     try {
       final response = await http.patch(
         url,
-        headers: ApiConfig.getHeaders(
+        headers: await ApiConfig.getHeaders(
           token: await AuthStorage.getAccessToken(),
         ),
       ).timeout(ApiConfig.timeout);

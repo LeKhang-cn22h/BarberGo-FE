@@ -10,27 +10,71 @@ class ServiceViewModel extends ChangeNotifier {
   List<ServiceModel> _filteredServices = [];
   List<ServiceModel> _barberServices = [];
   ServiceModel? _selectedService;
+  ServiceResponsePrice? _priceRange;
   bool _isLoading = false;
+  bool _isLoadingPriceRange = false;
   String? _error;
   String? _searchKeyword = '';
   String? _selectedBarberId;
+  Map<String,ServiceResponsePrice>_priceRangeCache={};
+  ServiceResponsePrice? getPriceRange(String barberId){
+    return _priceRangeCache[barberId];
+  }
+  String getFormattedPriceRange(String barberId){
+    final priceRange=_priceRangeCache[barberId];
+    if(priceRange==null) return 'dang tai...';
+    return '${priceRange.minPrice.toString()} - ${priceRange.maxPrice.toString()}VND';
+  }
+  bool hasPriceRange(String BarberId) {
+    return _priceRangeCache.containsKey(BarberId);
+  }
 
   // ==================== GETTERS ====================
   List<ServiceModel> get allServices => _allServices;
   List<ServiceModel> get filteredServices => _filteredServices;
   List<ServiceModel> get barberServices => _barberServices;
   ServiceModel? get selectedService => _selectedService;
+  ServiceResponsePrice? get priceRange => _priceRange;
   bool get isLoading => _isLoading;
+  bool get isLoadingPriceRange => _isLoadingPriceRange;
   String? get error => _error;
   String? get searchKeyword => _searchKeyword;
   String? get selectedBarberId => _selectedBarberId;
-
   int get totalServicesCount => _allServices.length;
   int get filteredServicesCount => _filteredServices.length;
   int get barberServicesCount => _barberServices.length;
 
-  // ==================== FETCH METHODS ====================
 
+  // ==================== FETCH METHODS ====================
+  ///fetch price range for a barber
+  Future<void> fetchPriceRange(String barberId) async {
+    if(_priceRangeCache.containsKey(barberId)){
+      print('price range cached for barber $barberId');
+      return;
+    }
+    print('fetching price range for barber $barberId');
+    try{
+      final response=await _serviceService.getPriceRange(barberId);
+      _priceRangeCache[barberId]=response;
+      notifyListeners();
+    }catch(e){
+      print('Error fetching price range: $e');
+    }
+  }
+  Future<void> fetchPriceRangesForBarbers(List<String> barberIds) async{
+    final ids=barberIds.where((id)=>!_priceRangeCache.containsKey(id)).toList();
+    if(ids.isEmpty) return;
+    //dùng để
+    await Future.wait(ids.map((id)=>fetchPriceRange(id)));
+  }
+  void clearPriceRange() {
+    _priceRange = null;
+    notifyListeners();
+  }
+  void clearPriceRangeCache() {
+    _priceRangeCache.clear();
+    notifyListeners();
+  }
   /// Fetch all services
   Future<void> fetchAllServices() async {
     _setLoading(true);
@@ -254,6 +298,7 @@ class ServiceViewModel extends ChangeNotifier {
     _error = null;
     _searchKeyword = null;
     _selectedBarberId = null;
+    _priceRange=null;
     super.dispose();
   }
 }

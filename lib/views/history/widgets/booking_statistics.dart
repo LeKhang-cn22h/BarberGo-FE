@@ -48,18 +48,6 @@ class BookingStatistics extends StatelessWidget {
               value: stats['completed'].toString(),
               color: Colors.green,
             ),
-            const Divider(height: 16),
-
-            // Total spent
-            _buildStatItem(
-              icon: Icons.attach_money,
-              label: 'Tổng chi tiêu',
-              value: '${stats['totalSpent'].toString().replaceAllMapped(
-                RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                    (Match m) => '${m[1]}.',
-              )}đ',
-              color: Colors.purple,
-            ),
           ],
         ),
       ),

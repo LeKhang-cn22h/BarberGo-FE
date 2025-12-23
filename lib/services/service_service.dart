@@ -23,7 +23,15 @@ class ServiceService {
       rethrow;
     }
   }
-
+//get range price
+  Future<ServiceResponsePrice> getPriceRange(String barberId )async {
+    try {
+      return await _serviceApi.getPriceRange(barberId);
+    } catch (e) {
+      print('ServiceService - getPriceRange error: $e');
+      rethrow;
+    }
+  }
   // ==================== GET SERVICES BY BARBER ====================
   Future<GetServicesByBarberResponse> getServicesByBarber(String barberId) async {
     try {

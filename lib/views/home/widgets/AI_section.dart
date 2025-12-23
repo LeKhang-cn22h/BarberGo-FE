@@ -20,6 +20,9 @@ class AiSection extends StatelessWidget {
             Aiconsultationitem(
               icon: Icons.face,
               label: 'AI tạo tóc',
+              onTap: (){
+                context.pushNamed('hair');
+              },
             ),
             Aiconsultationitem(
               icon: Icons.medical_services_outlined,

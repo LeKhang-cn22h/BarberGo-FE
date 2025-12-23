@@ -23,7 +23,7 @@ class AppointmentApi {
     String? token,
   }) async {
     final url = ApiConfig.getUrl(AppointmentEndpoint.appointmentCreate);
-    final headers = ApiConfig.getHeaders(token: token);
+    final headers = await ApiConfig.getHeaders(token: token);
 
     final body = jsonEncode({
       'user_id': userId,
@@ -56,7 +56,7 @@ class AppointmentApi {
     required String token,
   }) async {
     final url = ApiConfig.getUrlWithId(AppointmentEndpoint.appointmentGetByUser, userId);
-    final headers = ApiConfig.getHeaders(token: token);
+    final headers = await ApiConfig.getHeaders(token: token);
 
     try {
       final response = await http.get(
@@ -87,7 +87,7 @@ class AppointmentApi {
     try {
       final response = await http.get(
         Uri.parse(url),
-        headers: ApiConfig.getHeaders(
+        headers:await ApiConfig.getHeaders(
           token: await AuthStorage.getAccessToken(),
         ),
       ).timeout(ApiConfig.timeout);

@@ -269,6 +269,19 @@ class ServiceResponseParser {
 
     throw FormatException('Invalid response format for services');
   }
+}
+class ServiceResponsePrice{
+  final num minPrice;
+  final num maxPrice;
 
-
+  ServiceResponsePrice({
+    required this.minPrice,
+    required this.maxPrice,
+  });
+  factory ServiceResponsePrice.fromJson(Map<String, dynamic> json) {
+    return ServiceResponsePrice(
+      minPrice: json['min_price'] ?? 0,
+      maxPrice: json['max_price'] ?? 0,
+    );
+  }
 }

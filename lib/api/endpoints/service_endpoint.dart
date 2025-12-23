@@ -8,4 +8,6 @@ class ServiceEndpoint{
   /// GET /services/barber/{barber_id} - Lấy danh sách dịch vụ của 1 barber
   static const String serviceGetByBarber = "/services/barber";
 
+  ///get service/pricerange/{barber_id}" - lấy khoảng giá của 1 barber
+  static const String serviceGetPriceRange="/services/pricerange";
 }

@@ -32,7 +32,7 @@
       try {
         final response = await http.get(
           url,
-          headers: ApiConfig.getHeaders(
+          headers:await ApiConfig.getHeaders(
             token: await AuthStorage.getAccessToken(),
           ),
         ).timeout(ApiConfig.timeout);
@@ -78,7 +78,7 @@
       try {
         final response = await http.get(
           url,
-          headers: ApiConfig.getHeaders(
+          headers:await ApiConfig.getHeaders(
             token: await AuthStorage.getAccessToken(),
           ),
         ).timeout(ApiConfig.timeout);
@@ -108,7 +108,7 @@
       try {
         final response = await http.post(
           url,
-          headers: ApiConfig.getHeaders(
+          headers:await ApiConfig.getHeaders(
             token: await AuthStorage.getAccessToken(),
           ),
           body: json.encode(request.toJson()),
