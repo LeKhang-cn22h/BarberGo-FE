@@ -122,6 +122,21 @@ class BarberViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+  Future<void> updateBarberLocation(String Bid, double lat, double lng){
+    _setLoading(true);
+    _error=null;
+    notifyListeners();
+    try{
+      return _barberService.updateBarberLocation(Bid, lat, lng);
+      }catch(e){
+      _error=e.toString();
+      notifyListeners();
+      rethrow;
+    }finally{
+      _setLoading(false);
+      notifyListeners();
+    }
+  }
   void clearSelectedBarber() {
     _selectedBarber = null;
     notifyListeners();

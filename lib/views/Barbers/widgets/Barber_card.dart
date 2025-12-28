@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class BarberCard extends StatelessWidget {
   final String? id;
   final String? name;
-  final String? location;
+  // final String? location;
   final String? area;
   final String? address;
   final double? rank;
@@ -17,7 +17,7 @@ class BarberCard extends StatelessWidget {
      this.id,
      this.imagePath,
      this.name,
-     this.location,
+     // this.location,
      this.area,
      this.address,
     this.rank,

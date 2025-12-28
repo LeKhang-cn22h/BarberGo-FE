@@ -10,4 +10,7 @@ class BarberEndpoint{
 
   /// GET /barbers/top - Lấy danh sách top barbers
   static const String barberGetTop = "/barbers/top";
+
+  ///Get /barbers/location/{id}
+  static const String barberUpdateLocation="/barbers/location";
 }

@@ -1,7 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:path/path.dart' as path;
 import 'endpoints/api_config.dart';
 import '../core/utils/auth_storage.dart';
 import '../models/barber/barber_model.dart';
@@ -188,6 +186,50 @@ class BarberApi {
       rethrow;
     }
   }
+  //======update location barber=====
+  Future<Map<String, dynamic>> updateBarberLocation({
+    required String barberId,
+    required double lat,
+    required double lng,
+  }) async {
+    final url = Uri.parse(
+      ApiConfig.getUrlWithId(
+        BarberEndpoint.barberUpdateLocation,
+        barberId,
+      ),
+    );
+
+    try {
+      final body = {
+        "location": {
+          "lat": lat,
+          "lng": lng,
+        }
+      };
+
+      final response = await http
+          .patch(
+        url,
+        headers: await ApiConfig.getHeaders(
+          token: await AuthStorage.getAccessToken(),
+        ),
+        body: jsonEncode(body),
+      )
+          .timeout(ApiConfig.timeout);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception(
+          'Update barber location failed: ${response.statusCode} - ${response.body}',
+        );
+      }
+    } catch (e) {
+      print('Update barber location error: $e');
+      rethrow;
+    }
+  }
+
 
   // ==================== GET BARBERS BY AREA ====================
   Future<GetAllBarbersResponse> getBarbersByArea(String area) async {

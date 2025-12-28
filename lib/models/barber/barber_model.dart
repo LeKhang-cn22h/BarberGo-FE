@@ -1,11 +1,35 @@
 import 'package:barbergofe/models/auth/user_model.dart';
+/// ==================== LOCATION UPDATE MODEL ====================
+class LocationUpdate {
+  final double lat;
+  final double lng;
 
+  LocationUpdate({
+    required this.lat,
+    required this.lng,
+  });
+
+  factory LocationUpdate.fromJson(Map<String, dynamic> json) {
+    return LocationUpdate(
+      lat: (json['lat'] as num).toDouble(),
+      lng: (json['lng'] as num).toDouble(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'lat': lat,
+      'lng': lng,
+    };
+  }
+}
 // ==================== Barber Base Model ====================
 class BarberModel {
   final String id;
   final String userId;
   final String name;
-  final String? location;
+  final double?lat;
+  final double?lng;
   final String? area;
   final String? address;
   final String? imagePath;
@@ -16,7 +40,8 @@ class BarberModel {
     required this.id,
     required this.userId,
     required this.name,
-    this.location,
+    this.lat,
+    this.lng,
     this.area,
     this.address,
     this.imagePath,
@@ -29,7 +54,8 @@ class BarberModel {
       id: json['id']?.toString() ?? '',
       userId: json['user_id']?.toString() ?? '',
       name: json['name'] ?? '',
-      location: json['location'],
+      lat: json['lat'] != null ? (json['lat'] as num).toDouble() : null,
+      lng: json['lng'] != null ? (json['lng'] as num).toDouble() : null,
       area: json['area'],
       address: json['address'],
       imagePath: json['imagepath'] ?? json['image_path'],
@@ -43,7 +69,8 @@ class BarberModel {
       'id': id,
       'user_id': userId,
       'name': name,
-      'location': location,
+      'lat':lat,
+      'lng':lng,
       'area': area,
       'address': address,
       'imagepath': imagePath,
@@ -56,7 +83,8 @@ class BarberModel {
     String? id,
     String? userId,
     String? name,
-    String? location,
+    double?lat,
+    double?lng,
     String? area,
     String? address,
     String? imagePath,
@@ -67,7 +95,8 @@ class BarberModel {
       id: id ?? this.id,
       userId: userId ?? this.userId,
       name: name ?? this.name,
-      location: location ?? this.location,
+      lat: lat ?? this.lat,
+      lng: lng ?? this.lng,
       area: area ?? this.area,
       address: address ?? this.address,
       imagePath: imagePath ?? this.imagePath,
@@ -81,28 +110,15 @@ class BarberModel {
 class BarberCreateRequest {
   final String userId;
   final String name;
-  final String? location;
-  final String? area;
-  final String? address;
-  final String? imagePath;
-
   BarberCreateRequest({
     required this.userId,
     required this.name,
-    this.location,
-    this.area,
-    this.address,
-    this.imagePath,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'user_id': userId,
       'name': name,
-      'location': location,
-      'area': area,
-      'address': address,
-      'imagepath': imagePath,
     };
   }
 }
@@ -110,7 +126,7 @@ class BarberCreateRequest {
 // ==================== Barber Update Request ====================
 class BarberUpdateRequest {
   final String? name;
-  final String? location;
+  final LocationUpdate? location;
   final String? area;
   final String? address;
   final double? rank;
@@ -129,7 +145,7 @@ class BarberUpdateRequest {
     final Map<String, dynamic> data = {};
 
     if (name != null) data['name'] = name;
-    if (location != null) data['location'] = location;
+    if (location != null) data['location'] = location!.toJson();
     if (area != null) data['area'] = area;
     if (address != null) data['address'] = address;
     if (rank != null) data['rank'] = rank;
@@ -142,13 +158,13 @@ class BarberUpdateRequest {
 // ==================== Barber Create Response ====================
 class BarberCreateResponse {
   final bool success;
-  final String message;
+  final String? message;
   final BarberModel? barber;
   final int? statusCode;
 
   BarberCreateResponse({
     required this.success,
-    required this.message,
+    this.message,
     this.barber,
     this.statusCode,
   });
@@ -156,7 +172,7 @@ class BarberCreateResponse {
   factory BarberCreateResponse.fromJson(Map<String, dynamic> json) {
     return BarberCreateResponse(
       success: json['success'] ?? false,
-      message: json['message'] ?? '',
+      message: json['message'],
       barber: json['data'] != null ? BarberModel.fromJson(json['data']) : null,
       statusCode: json['statusCode'],
     );

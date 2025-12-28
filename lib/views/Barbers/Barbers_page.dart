@@ -109,7 +109,7 @@ class _BarbersPageState extends State<BarbersPage> {
                               id: barberId,
                               imagePath: barber.imagePath,
                               name: barber.name,
-                              location: barber.location,
+                              // location: barber.location,
                               area: barber.area,
                               address: barber.address,
                               rank: barber.rank,

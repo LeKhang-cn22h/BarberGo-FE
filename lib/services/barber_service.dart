@@ -26,6 +26,13 @@ class BarberService {
     }
   }
 
+  Future<Map<String, dynamic>> updateBarberLocation(String Bid, double lat, double lng) async{
+    try {
+      return await _barberApi.updateBarberLocation(barberId: Bid, lat: lat, lng: lng);
+    }catch (e){
+      rethrow;
+    }
+  }
   Future<GetAllBarbersResponse> getBarbersByArea(String area) async {
     try {
       return await _barberApi.getBarbersByArea(area);

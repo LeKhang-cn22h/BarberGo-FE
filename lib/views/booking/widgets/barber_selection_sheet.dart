@@ -57,7 +57,7 @@ class _BarberSelectionSheetState extends State<BarberSelectionSheet> {
                     id: barber.id,
                     imagePath: barber.imagePath ?? 'assets/images/default_barber.jpg',
                     name: barber.name,
-                    location: barber.location ?? barber.area ?? barber.address ?? 'Địa chỉ',
+                    location: barber.area ?? barber.address ?? 'Địa chỉ',
                     rank: barber.rank ?? 0.0,
                     onTap: () {
                       widget.onSelect(barber);
