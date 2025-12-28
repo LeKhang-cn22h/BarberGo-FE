@@ -169,7 +169,6 @@ class ProfileApi {
 
       // Nếu backend cần các field khác, bạn có thể lấy từ storage
       final currentName = await AuthStorage.getUserName() ?? '';
-      final currentPhone = ''; // Lấy từ đâu đó hoặc API get profile
 
       request.fields['full_name'] = currentName;
       // request.fields['phone'] = currentPhone; // Nếu có

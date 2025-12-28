@@ -79,10 +79,17 @@ class _FeaturedBarbersSectionState extends State<FeaturedBarbersSection> {
                     id: barber.id,
                     imagePath: barber.imagePath ?? 'assets/images/default_barber.jpg',
                     name: barber.name,
-                    location: barber.location ??
-                        barber.area ??
-                        barber.address ??
-                        'Địa chỉ không xác định',
+                    location: [
+                      barber.area,
+                      barber.address,
+                    ].where((e) => e != null && e!.isNotEmpty)
+                        .join(' - ')
+                        .isNotEmpty
+                        ? [
+                      barber.area,
+                      barber.address,
+                    ].where((e) => e != null && e!.isNotEmpty).join(' - ')
+                        : 'Địa chỉ không xác định',
                     rank: barber.rank ?? 0.0,
                   ),
                 ],

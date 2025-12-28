@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 // ==================== TimeSlot Base Model ====================
 class TimeSlotModel {
   final int id;

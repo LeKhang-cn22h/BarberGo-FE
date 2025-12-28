@@ -50,9 +50,17 @@ class _DetailShopPageState extends State<DetailShopPage> {
     super.didChangeDependencies();
     if (!_isInitialized) {
       _isInitialized = true;
-      _initializeData();
+      // Wrap trong addPostFrameCallback
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _initializeData();
+      });
     }
   }
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
 
   Future<void> _initializeData() async {
     setState(() {
@@ -238,10 +246,13 @@ class _DetailShopPageState extends State<DetailShopPage> {
         children: [
           // SECTION 1: Thông tin barber (avatar, tên, địa chỉ, rating)
           BarberInfo(
+            barberId: barber.id,
             name: barber.name,
             rank: barber.rank ?? 0.0,
             location: _getLocation(barber),
             imagePath: _getImagePath(barber),
+            lat: barber.lat,
+            lng: barber.lng,
           ),
 
           // SECTION 2: Thanh tìm kiếm dịch vụ
@@ -316,7 +327,7 @@ class _DetailShopPageState extends State<DetailShopPage> {
   /// Lấy location string từ barber object
   /// Ưu tiên: location -> area -> address -> default
   String _getLocation(BarberModel barber) {
-    if (barber.location?.isNotEmpty == true) return barber.location!;
+    // if (barber.location?.isNotEmpty == true) return barber.location!;
     if (barber.area?.isNotEmpty == true) return barber.area!;
     if (barber.address?.isNotEmpty == true) return barber.address!;
     return 'Địa chỉ không xác định';

@@ -1,15 +1,16 @@
-import 'package:barbergofe/models/barber/barber_model.dart';
-import 'package:barbergofe/viewmodels/auth/auth_viewmodel.dart';
+
 import 'package:barbergofe/views/Barbers/Areas_page.dart';
 import 'package:barbergofe/views/Barbers/Barbers_page.dart';
-import 'package:barbergofe/views/booking/booking_page.dart';
 import 'package:barbergofe/views/booking/service_selection_page.dart';
+import 'package:barbergofe/views/chat/chat_page.dart';
 import 'package:barbergofe/views/location/location_picker_page.dart';
+import 'package:barbergofe/views/map/osm_map_screen.dart';
 import 'package:barbergofe/views/profile/PartnerSignUpForm.dart';
 import 'package:barbergofe/views/profile/appointment_detail_page.dart';
 import 'package:barbergofe/views/profile/change_password_page.dart';
 import 'package:barbergofe/views/profile/partner_registration_page.dart';
 import 'package:barbergofe/views/profile/personal_info_page..dart';
+import 'package:barbergofe/views/rating/rating_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -21,7 +22,6 @@ import 'package:barbergofe/routes/shell_routes.dart';
 import 'package:barbergofe/views/intro/Screen_intro.dart';
 import 'package:barbergofe/views/auth/SignIn_page.dart';
 import 'package:barbergofe/views/auth/SignUp_page.dart';
-import 'package:barbergofe/views/OTP/page/otp_page.dart';
 import 'package:barbergofe/views/forgotPass/forgotPass_page.dart';
 import 'package:barbergofe/views/hair/hairstyle_screen.dart';
 import 'package:barbergofe/views/newPass/newPass_page.dart';
@@ -298,7 +298,38 @@ class AppRouter {
           child: AppointmentDetailScreen(),
         ),
       ),
+      GoRoute(path: RouteNames.Chat,
+      name: 'Chat',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: const ChatPage(),
+      ),
+      ),
+      GoRoute(
+        path: RouteNames.Map,
+        name: 'Map',
+        pageBuilder: (context, state) {
+          // Lấy extra ra trước
+          final extra = state.extra as Map<String, dynamic>?;
 
+          return MaterialPage(
+            key: state.pageKey,
+            child: OpenMapScreen(
+              destinationLat: extra?['destinationLat'] as double?,
+              destinationLng: extra?['destinationLng'] as double?
+
+            ),
+          );
+        },
+      ),
+      GoRoute(path: RouteNames.User_Rating,
+      name: 'user_rating',
+      pageBuilder: (context, state){
+        return MaterialPage(
+          key: state.pageKey,
+          child: const UserRatingsPage(),
+        );
+      }),
       // ==================== SHELL ROUTES ====================
       shellRoutes,
     ],

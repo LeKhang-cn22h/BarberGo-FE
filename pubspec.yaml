@@ -53,6 +53,11 @@ dependencies:
   flutter_dotenv: ^6.0.0
   supabase_flutter: ^2.12.0
   url_launcher: ^6.3.2
+  flutter_map: ^8.2.2
+  latlong2: ^0.9.1
+  flutter_map_location_marker: ^10.2.0
+  location: ^8.0.1
+  flutter_polyline_points: ^3.1.0
 
 dev_dependencies:
   flutter_test:

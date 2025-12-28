@@ -4,7 +4,6 @@ import 'package:barbergofe/views/history/history_page.dart';
 import 'package:barbergofe/views/home/home_page.dart';
 import 'package:barbergofe/views/main_layout/main_layout.dart';
 import 'package:barbergofe/views/profile/profile_page.dart';
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 /// ShellRoute dùng cho layout có Bottom Navigation

@@ -62,7 +62,8 @@ class ProfilePage extends StatelessWidget {
                           icon: Icons.location_on_outlined,
                           title: 'Địa chỉ',
                           onTap: () {
-                            context.pushNamed('location_picker');
+                            // context.pushNamed('location_picker');
+                            context.pushNamed('Map');
                           },
                         ),
 
@@ -89,6 +90,13 @@ class ProfilePage extends StatelessWidget {
                         ),
 
                         const SizedBox(height: 32),
+                        ProfileMenuItem(
+                          icon: Icons.star,
+                          title: 'Đánh giá',
+                          onTap: () {
+                            context.pushNamed('user_rating');
+                          },
+                        )
                       ],
                     ),
                   ),

@@ -20,6 +20,9 @@ class RouteNames{
   static const AppointmentDetail='/AppointmentDetail';
   static const ListArea='/listArea';
   static const Barbers='/Barbers';
+  static const Chat='/Chat';
+  static const Map="/Map";
+  static const User_Rating="/user_rating";
 //EROR
   static const String notFound = '/404';
 
