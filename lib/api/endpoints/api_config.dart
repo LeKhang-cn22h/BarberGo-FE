@@ -4,10 +4,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class ApiConfig {
   static const String devBaseUrl = "http://192.168.1.65:8000";
   static const String prodBaseUrl = "https://your-production-url.com";
-  static const String baseUrl = devBaseUrl;
 
+  /// Current active base URL (change this when deploying)
+  static const String baseUrl = devBaseUrl;
   // ==================== HELPER METHODS ====================
 
+  /// Tạo full URL từ endpoint
+  ///
+  /// Example: getUrl("/users/") → "http://192.168.1.183:8000/users/"
   static String getUrl(String endpoint) {
     return '$baseUrl$endpoint';
   }
@@ -113,7 +117,12 @@ class ApiConfig {
 
   // ==================== TIMEOUT CONFIGURATION ====================
 
+  /// Timeout cho request thông thường (30 giây)
   static const Duration timeout = Duration(seconds: 30);
+
+  /// Timeout cho kết nối (15 giây)
   static const Duration connectionTimeout = Duration(seconds: 15);
+
+  /// Timeout cho upload file (60 giây)
   static const Duration uploadTimeout = Duration(seconds: 60);
 }
