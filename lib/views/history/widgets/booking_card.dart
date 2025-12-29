@@ -1,3 +1,5 @@
+// lib/views/history/widgets/booking_card.dart
+
 import 'package:flutter/material.dart';
 import 'package:barbergofe/models/booking/booking_model.dart';
 import 'package:barbergofe/core/constants/color.dart';
@@ -70,7 +72,9 @@ class BookingCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      booking.barberName,
+                      booking.barberName.isNotEmpty
+                          ? booking.barberName
+                          : 'Chưa có thông tin', //  Xử lý null/empty
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -90,7 +94,9 @@ class BookingCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      booking.servicesSummary,
+                      booking.servicesSummary.isNotEmpty
+                          ? booking.servicesSummary
+                          : 'Chưa có dịch vụ', // Xử lý null/empty
                       style: const TextStyle(fontSize: 14),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -106,7 +112,9 @@ class BookingCard extends StatelessWidget {
                   const Icon(Icons.access_time, size: 16, color: Colors.grey),
                   const SizedBox(width: 8),
                   Text(
-                    booking.formattedTime,
+                    booking.formattedTime.isNotEmpty
+                        ? booking.formattedTime
+                        : 'Chưa có thời gian', //  Xử lý null/empty
                     style: const TextStyle(fontSize: 14),
                   ),
                 ],
@@ -127,6 +135,7 @@ class BookingCard extends StatelessWidget {
                     ),
                   ),
 
+                  // Chỉ hiển thị nút hủy khi có callback và booking có thể hủy
                   if (onCancel != null && booking.canCancel)
                     ElevatedButton(
                       onPressed: onCancel,

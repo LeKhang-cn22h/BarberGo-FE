@@ -247,7 +247,11 @@ class BookingViewModel extends ChangeNotifier {
       }
     }
   }
-
+  void cancelBooking() {
+    print(' Canceling booking...');
+    _reset();
+    print(' Booking canceled and form reset');
+  }
   // Reset lỗi
   void clearError() {
     _error = null;

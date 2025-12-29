@@ -376,6 +376,31 @@ class _BookingPageState extends State<BookingPage> {
                   await _handleBookingCreation(bookingViewModel);
                 },
               ),
+              if (bookingViewModel.selectedBarber != null ||
+                  bookingViewModel.selectedServices.isNotEmpty ||
+                  bookingViewModel.selectedTimeSlot != null)
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _showCancelConfirmation(bookingViewModel),
+                    icon: const Icon(Icons.close, color: Colors.red),
+                    label: const Text(
+                      'Hủy đặt lịch',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.red,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: const BorderSide(color: Colors.red, width: 2),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
 
               const SizedBox(height: 20),
             ],
@@ -525,6 +550,123 @@ class _BookingPageState extends State<BookingPage> {
           isLoading: bookingViewModel.isLoading,
         );
       },
+    );
+  }
+  // Thêm method này vào _BookingPageState
+
+  /// Hiển thị dialog xác nhận hủy đặt lịch
+  void _showCancelConfirmation(BookingViewModel bookingViewModel) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+            SizedBox(width: 8),
+            Text('Xác nhận hủy'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Bạn có chắc muốn hủy đặt lịch này?',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange[50],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Thông tin sẽ bị xóa:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (bookingViewModel.selectedBarber != null)
+                    _buildInfoRow(
+                      Icons.store,
+                      'Tiệm: ${bookingViewModel.selectedBarber!.name}',
+                    ),
+                  if (bookingViewModel.selectedServices.isNotEmpty)
+                    _buildInfoRow(
+                      Icons.content_cut,
+                      'Dịch vụ: ${bookingViewModel.selectedServices.length} dịch vụ',
+                    ),
+                  if (bookingViewModel.selectedTimeSlot != null)
+                    _buildInfoRow(
+                      Icons.access_time,
+                      'Giờ: ${bookingViewModel.selectedTimeSlot!.displayText}',
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Không, giữ lại'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // Hủy đặt lịch
+              bookingViewModel.cancelBooking();
+              Navigator.pop(context); // Đóng dialog
+
+              // Hiển thị thông báo
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Đã hủy đặt lịch'),
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+
+              // Quay về trang chủ
+              Future.delayed(const Duration(milliseconds: 500), () {
+                if (mounted) {
+                  context.goNamed('home');
+                }
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Có, hủy đặt lịch'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Widget hiển thị thông tin trong dialog
+  Widget _buildInfoRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: Colors.orange[700]),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 13),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

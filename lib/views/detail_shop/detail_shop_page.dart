@@ -43,6 +43,7 @@ class _DetailShopPageState extends State<DetailShopPage> {
   @override
   void initState() {
     super.initState();
+
   }
 
   @override
