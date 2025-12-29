@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:barbergofe/core/utils/auth_storage.dart';
 import 'package:barbergofe/viewmodels/auth/auth_viewmodel.dart';
 import 'package:barbergofe/viewmodels/auth/sign_in_viewmodel.dart';
 import 'package:barbergofe/views/auth/widgets/GlobalLoading.dart';
@@ -33,7 +34,7 @@ class _SigninPageContent extends StatelessWidget {
   Future<void> _handleLogin(BuildContext context, bool mounted) async {
     // Get both ViewModels
     final signInVM = context.read<SignInViewModel>();
-    final authVM = context.read<AuthViewModel>(); // ⭐ Global auth
+    final authVM = context.read<AuthViewModel>();
 
     // Validate
     final validationPassed = await signInVM.signIn();
@@ -53,8 +54,21 @@ class _SigninPageContent extends StatelessWidget {
 
     // Navigate if success
     if (success && mounted) {
-      print('Login successful, navigating to home...');
-      context.goNamed('home');
+
+      // 1. Lấy role vừa lưu trong máy ra
+      final role = await AuthStorage.getUserRole();
+      print('Login successful. Role detected: $role');
+
+      // 2. Kiểm tra role để điều hướng
+      if (role == 'owner') {
+        print('Navigating to Owner Dashboard...');
+        context.goNamed('owner_home'); // Chuyển đến trang chủ quán
+      } else {
+        print('Navigating to Customer Home...');
+        context.goNamed('home'); // Chuyển đến trang khách hàng
+      }
+
+
     } else {
       print(' Login failed');
     }

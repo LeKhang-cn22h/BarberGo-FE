@@ -66,6 +66,7 @@ class AuthService {
         userId: response.user.id,
         email: response.user.email,
         fullName: response.user.fullName,
+        role: response.user.role
       );
 
       print(' [SERVICE] Login successful');
@@ -102,6 +103,7 @@ class AuthService {
         userId: response.user.id,
         email: response.user.email,
         fullName: response.user.fullName,
+        role: response.user.role
       );
 
       print(' [SERVICE] Login successful');
@@ -217,6 +219,8 @@ class AuthService {
       final userId = await AuthStorage.getUserId();
       final email = await AuthStorage.getUserEmail();
       final name = await AuthStorage.getUserName();
+      final role = await AuthStorage.getUserRole();
+
 
       if (userId == null || email == null || name == null) {
         return null;
@@ -227,6 +231,7 @@ class AuthService {
         email: email,
         fullName: name,
         emailConfirmed: true,
+        role: role ?? ''
       );
 
     } catch (e) {

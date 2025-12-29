@@ -1,4 +1,5 @@
 
+import 'package:barbergofe/routes/owner_shell_routes.dart';
 import 'package:barbergofe/views/Barbers/Areas_page.dart';
 import 'package:barbergofe/views/Barbers/Barbers_page.dart';
 import 'package:barbergofe/views/booking/service_selection_page.dart';
@@ -42,9 +43,11 @@ class AppRouter {
 
       final hasSeenIntro = await AuthStorage.hasSeenIntro();
       final isLoggedIn = await AuthStorage.isLoggedIn();
+      final role = await AuthStorage.getUserRole();
 
       print('   Has seen intro: $hasSeenIntro');
       print('   Is logged in: $isLoggedIn');
+      print('   Is logged in: $isLoggedIn | Role: $role');
 
       final currentPath = state.uri.path;
 
@@ -71,7 +74,11 @@ class AppRouter {
 
       if (isLoggedIn && _isAuthPage(currentPath)) {
         print('   → Already logged in, redirect to home');
+        if(role == 'owner'){
+          return RouteNames.owner_home;
+        }else{
         return RouteNames.home;
+        }
       }
 
       if (!isLoggedIn && !isPublicRoute && _isProtectedPage(currentPath)) {
@@ -332,6 +339,7 @@ class AppRouter {
       }),
       // ==================== SHELL ROUTES ====================
       shellRoutes,
+      ownershellRoutes,
     ],
 
     errorBuilder: (context, state) => const NotFoundPage(),

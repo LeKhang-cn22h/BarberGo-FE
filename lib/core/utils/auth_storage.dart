@@ -11,6 +11,7 @@ class AuthStorage {
   static const String _keyUserName = 'user_name';
   static const String _keyIsLoggedIn = 'is_logged_in';
   static const String _keyIntroSeen = 'intro_seen';
+  static const String _keyRole='user_role';
 
   // ==================== INTRO TRACKING ====================
 
@@ -35,6 +36,7 @@ class AuthStorage {
     required String userId,
     required String email,
     required String fullName,
+    String? role,
   }) async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -43,6 +45,7 @@ class AuthStorage {
     await prefs.setString(_keyUserEmail, email);
     await prefs.setString(_keyUserName, fullName);
     await prefs.setBool(_keyIsLoggedIn, true);
+    await prefs.setString(_keyRole, role ?? '');
 
     if (refreshToken != null) {
       await prefs.setString(_keyRefreshToken, refreshToken);
@@ -79,6 +82,10 @@ class AuthStorage {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_keyUserName);
   }
+  static Future<String?> getUserRole() async{
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyRole);
+  }
 
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
@@ -96,6 +103,7 @@ class AuthStorage {
     await prefs.remove(_keyUserEmail);
     await prefs.remove(_keyUserName);
     await prefs.setBool(_keyIsLoggedIn, false);
+    await prefs.setBool(_keyIntroSeen, false);
 
     print('[AUTH STORAGE] Auth data cleared');
   }
