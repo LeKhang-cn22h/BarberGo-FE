@@ -15,7 +15,7 @@ class RatingService {
   }
 
   /// Lấy đánh giá theo ID
-  Future<RatingWithDetails> getRatingById(String ratingId) async {
+  Future<RatingWithDetails> getRatingById(int ratingId) async {
     return await _api.getRatingById(ratingId);
   }
 
@@ -35,12 +35,12 @@ class RatingService {
   }
 
   /// Cập nhật đánh giá
-  Future<RatingResponse> updateRating(String ratingId, RatingUpdate request) async {
+  Future<RatingResponse> updateRating(int ratingId, RatingUpdate request) async {
     return await _api.updateRating(ratingId, request);
   }
 
   /// Xóa đánh giá
-  Future<DeleteRatingResponse> deleteRating(String ratingId) async {
+  Future<DeleteRatingResponse> deleteRating(int ratingId) async {
     return await _api.deleteRating(ratingId);
   }
 
@@ -48,13 +48,25 @@ class RatingService {
   Future<RatingWithUser?> checkUserRatingForBarber(String userId, String barberId) async {
     try {
       final userRatings = await getRatingsByUserId(userId);
+
       // Tìm rating của user cho barber này
-      return userRatings.cast<RatingWithBarber?>().firstWhere(
-            (rating) => rating?.barberId == barberId,
-        orElse: () => null,
-      ) as RatingWithUser?;
+      for (var rating in userRatings) {
+        if (rating.barberId == barberId) {
+          // Convert RatingWithBarber to RatingWithUser
+          return RatingWithUser(
+            id: rating.id,
+            barberId: rating.barberId,
+            userId: rating.userId,
+            score: rating.score,
+            createdAt: rating.createdAt,
+            user: null,
+          );
+        }
+      }
+
+      return null;
     } catch (e) {
-      print('Error checking user rating: $e');
+      print(' Error checking user rating: $e');
       return null;
     }
   }

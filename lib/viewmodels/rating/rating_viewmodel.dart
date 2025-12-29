@@ -1,3 +1,4 @@
+// lib/viewmodels/rating/rating_viewmodel.dart
 import 'package:flutter/material.dart';
 import 'package:barbergofe/services/rating_service.dart';
 import 'package:barbergofe/models/rating/rating_model.dart';
@@ -14,7 +15,7 @@ class RatingViewModel extends ChangeNotifier {
   List<RatingWithUser> _barberRatings = [];
   List<RatingWithBarber> _userRatings = [];
   BarberAverageRating? _barberAverage;
-  RatingWithUser? _currentUserRating; // Rating của user hiện tại cho barber đang xem
+  RatingWithUser? _currentUserRating;
 
   // Getters
   bool get isLoading => _isLoading;
@@ -44,9 +45,9 @@ class RatingViewModel extends ChangeNotifier {
       print('New barber rank: ${response.barberNewRank}');
 
       // Refresh data sau khi tạo thành công
+      await checkUserRating(userId, barberId);
       await fetchBarberRatings(barberId);
       await fetchBarberAverage(barberId);
-      await checkUserRating(userId, barberId);
 
       _isLoading = false;
       notifyListeners();
@@ -55,7 +56,7 @@ class RatingViewModel extends ChangeNotifier {
       _error = e.toString();
       _isLoading = false;
       notifyListeners();
-      print(' Create rating error: $e');
+      print('Create rating error: $e');
       return false;
     }
   }
@@ -75,26 +76,17 @@ class RatingViewModel extends ChangeNotifier {
       _error = e.toString();
       _isLoading = false;
       notifyListeners();
-      print(' Fetch all ratings error: $e');
+      print('Fetch all ratings error: $e');
     }
   }
 
   /// Lấy đánh giá của barber
   Future<void> fetchBarberRatings(String barberId) async {
     try {
-      _isLoading = true;
-      _error = null;
-      notifyListeners();
-
       _barberRatings = await _service.getRatingsByBarberId(barberId);
-
-      _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
-      print(' Fetch barber ratings error: $e');
+      print('Fetch barber ratings error: $e');
     }
   }
 
@@ -104,7 +96,7 @@ class RatingViewModel extends ChangeNotifier {
       _barberAverage = await _service.getBarberAverage(barberId);
       notifyListeners();
     } catch (e) {
-      print(' Fetch barber average error: $e');
+      print('Fetch barber average error: $e');
     }
   }
 
@@ -123,22 +115,51 @@ class RatingViewModel extends ChangeNotifier {
       _error = e.toString();
       _isLoading = false;
       notifyListeners();
-      print(' Fetch user ratings error: $e');
+      print('Fetch user ratings error: $e');
     }
   }
 
   /// Kiểm tra user đã đánh giá barber này chưa
   Future<void> checkUserRating(String userId, String barberId) async {
     try {
-      _currentUserRating = await _service.checkUserRatingForBarber(userId, barberId);
+      print('Checking user rating for user: $userId, barber: $barberId');
+
+      final userRatings = await _service.getRatingsByUserId(userId);
+
+      // Reset trước
+      _currentUserRating = null;
+
+      // Tìm rating của user cho barber này
+      for (var rating in userRatings) {
+        if (rating.barberId == barberId) {
+          // Chuyển từ RatingWithBarber sang RatingWithUser
+          _currentUserRating = RatingWithUser(
+            id: rating.id,
+            barberId: rating.barberId,
+            userId: rating.userId,
+            score: rating.score,
+            createdAt: rating.createdAt,
+            user: null,
+          );
+          print('Found user rating: ${_currentUserRating?.score} stars');
+          break;
+        }
+      }
+
+      if (_currentUserRating == null) {
+        print(' User has not rated this barber yet');
+      }
+
       notifyListeners();
     } catch (e) {
       print('Check user rating error: $e');
+      _currentUserRating = null;
+      notifyListeners();
     }
   }
 
   /// Cập nhật đánh giá
-  Future<bool> updateRating(String ratingId, double newScore, String barberId) async {
+  Future<bool> updateRating(int ratingId, double newScore, String barberId, String userId) async {
     try {
       _isLoading = true;
       _error = null;
@@ -148,9 +169,10 @@ class RatingViewModel extends ChangeNotifier {
       final response = await _service.updateRating(ratingId, request);
 
       print('Rating updated successfully: ${response.message}');
-      print('New barber rank: ${response.barberNewRank}');
+      print(' New barber rank: ${response.barberNewRank}');
 
       // Refresh data
+      await checkUserRating(userId, barberId);
       await fetchBarberRatings(barberId);
       await fetchBarberAverage(barberId);
 
@@ -167,7 +189,7 @@ class RatingViewModel extends ChangeNotifier {
   }
 
   /// Xóa đánh giá
-  Future<bool> deleteRating(String ratingId, String barberId) async {
+  Future<bool> deleteRating(int ratingId, String barberId, String userId) async {
     try {
       _isLoading = true;
       _error = null;
@@ -175,12 +197,13 @@ class RatingViewModel extends ChangeNotifier {
 
       final response = await _service.deleteRating(ratingId);
 
-      print('Rating deleted: ${response.message}');
+      print(' Rating deleted: ${response.message}');
 
-      // Refresh data
+      // Reset và refresh data
+      _currentUserRating = null;
+      await checkUserRating(userId, barberId);
       await fetchBarberRatings(barberId);
       await fetchBarberAverage(barberId);
-      _currentUserRating = null;
 
       _isLoading = false;
       notifyListeners();

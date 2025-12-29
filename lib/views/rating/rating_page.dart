@@ -69,9 +69,10 @@ class _UserRatingsPageState extends State<UserRatingsPage> {
   Future<void> _updateRating(RatingWithBarber rating, double newScore) async {
     final ratingViewModel = context.read<RatingViewModel>();
     final success = await ratingViewModel.updateRating(
-      rating.id as String,
+      rating.id,
       newScore,
       rating.barberId ?? '',
+      rating.userId ?? ''
     );
 
     if (mounted) {
@@ -90,8 +91,9 @@ class _UserRatingsPageState extends State<UserRatingsPage> {
     if (confirmed == true && mounted) {
       final ratingViewModel = context.read<RatingViewModel>();
       final success = await ratingViewModel.deleteRating(
-        rating.id as String,
+        rating.id,
         rating.barberId ?? '',
+        rating.userId ?? ''
       );
 
       if (mounted) {

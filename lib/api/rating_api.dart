@@ -70,7 +70,7 @@ class RatingApi {
 
   /// Lấy thông tin chi tiết 1 đánh giá theo ID
   /// Không yêu cầu đăng nhập
-  Future<RatingWithDetails> getRatingById(String ratingId) async {
+  Future<RatingWithDetails> getRatingById(int ratingId) async {
     final url = Uri.parse(ApiConfig.getUrlWithId(RatingEndpoint.getRatingById,ratingId));
     print('GET: $url');
 
@@ -182,7 +182,7 @@ class RatingApi {
 
   /// Cập nhật đánh giá
   /// Yêu cầu: Đăng nhập
-  Future<RatingResponse> updateRating(String ratingId, RatingUpdate req) async {
+  Future<RatingResponse> updateRating(int ratingId, RatingUpdate req) async {
     final url = Uri.parse(ApiConfig.getUrlWithId(RatingEndpoint.updateRating,ratingId));
     print('PUT: $url');
 
@@ -215,7 +215,7 @@ class RatingApi {
 
   /// Xóa đánh giá
   /// Yêu cầu: Đăng nhập
-  Future<DeleteRatingResponse> deleteRating(String ratingId) async {
+  Future<DeleteRatingResponse> deleteRating(int ratingId) async {
     final url = Uri.parse(ApiConfig.getUrlWithId(RatingEndpoint.deleteRating,ratingId));
     print(' DELETE: $url');
 

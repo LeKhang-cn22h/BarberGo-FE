@@ -30,8 +30,9 @@ class BarberInfo extends StatefulWidget {
 }
 
 class _BarberInfoState extends State<BarberInfo> {
-  double? _userRating; // Rating hiện tại của user
+  double? _userRating;
   bool _isLoadingRating = false;
+  String? _userId;
 
   @override
   void initState() {
@@ -41,23 +42,23 @@ class _BarberInfoState extends State<BarberInfo> {
 
   /// Load rating của user cho barber này
   Future<void> _loadUserRating() async {
-    final userId = await AuthStorage.getUserId();
-    if (userId == null) return;
+    _userId = await AuthStorage.getUserId();
+    if (_userId == null) return;
 
     final ratingViewModel = context.read<RatingViewModel>();
-    await ratingViewModel.checkUserRating(userId, widget.barberId);
+    await ratingViewModel.checkUserRating(_userId!, widget.barberId);
 
     if (mounted) {
       setState(() {
         _userRating = ratingViewModel.currentUserRating?.score;
       });
+      print('🔄 User rating loaded: $_userRating');
     }
   }
 
   /// Hiển thị dialog đánh giá
   Future<void> _showRatingDialog() async {
-    final userId = await AuthStorage.getUserId();
-    if (userId == null) {
+    if (_userId == null) {
       _showLoginRequiredDialog();
       return;
     }
@@ -84,29 +85,28 @@ class _BarberInfoState extends State<BarberInfo> {
               const SizedBox(height: 20),
               const Text('Chọn số sao:', style: TextStyle(fontSize: 16)),
               const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(5, (index) {
-              final star = index + 1.0;
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: GestureDetector(
-                  onTap: () {
-                    setDialogState(() {
-                      selectedRating = star;
-                    });
-                  },
-                  child: Icon(
-                    selectedRating >= star ? Icons.star : Icons.star_border,
-                    color: const Color(0xFFF3B51C),
-                    size: 40, // chỉnh kích thước sao
-                  ),
-                ),
-              );
-            }),
-          ),
-
-          const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (index) {
+                  final star = index + 1.0;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: GestureDetector(
+                      onTap: () {
+                        setDialogState(() {
+                          selectedRating = star;
+                        });
+                      },
+                      child: Icon(
+                        selectedRating >= star ? Icons.star : Icons.star_border,
+                        color: const Color(0xFFF3B51C),
+                        size: 40,
+                      ),
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(height: 10),
               Text(
                 selectedRating > 0
                     ? '${selectedRating.toStringAsFixed(1)} sao'
@@ -118,7 +118,7 @@ class _BarberInfoState extends State<BarberInfo> {
           actions: [
             if (existingRating != null)
               TextButton(
-                onPressed: () => Navigator.pop(context, -1.0), // Signal delete
+                onPressed: () => Navigator.pop(context, -1.0),
                 child: const Text('Xóa đánh giá', style: TextStyle(color: Colors.red)),
               ),
             TextButton(
@@ -136,89 +136,143 @@ class _BarberInfoState extends State<BarberInfo> {
       ),
     );
 
-    if (result != null) {
+    if (result != null && mounted) {
       if (result == -1.0) {
         // Delete rating
-        await _deleteRating(existingRating!.id as String);
+        await _deleteRating(existingRating!.id);
       } else if (existingRating != null) {
         // Update rating
-        await _updateRating(existingRating.id as String, result);
+        await _updateRating(existingRating.id, result);
       } else {
         // Create new rating
-        await _createRating(userId, result);
+        await _createRating(result);
       }
     }
   }
 
   /// Tạo đánh giá mới
-  Future<void> _createRating(String userId, double score) async {
+  Future<void> _createRating(double score) async {
+    if (_userId == null) return;
+
     setState(() => _isLoadingRating = true);
 
     final ratingViewModel = context.read<RatingViewModel>();
-    final success = await ratingViewModel.createRating(widget.barberId, userId, score);
+    final success = await ratingViewModel.createRating(
+      widget.barberId,
+      _userId!,
+      score,
+    );
 
     if (mounted) {
-      setState(() {
-        _isLoadingRating = false;
-        if (success) {
-          _userRating = score;
-        }
-      });
+      setState(() => _isLoadingRating = false);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(success ? ' Đánh giá thành công' : ' ${ratingViewModel.error}'),
-          backgroundColor: success ? Colors.green : Colors.red,
-        ),
-      );
+      if (success) {
+        // Reload lại rating của user
+        await _loadUserRating();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Đánh giá thành công'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('❌ ${ratingViewModel.error}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 
   /// Cập nhật đánh giá
-  Future<void> _updateRating(String ratingId, double newScore) async {
+  Future<void> _updateRating(int ratingId, double newScore) async {
+    if (_userId == null) return;
+
     setState(() => _isLoadingRating = true);
 
     final ratingViewModel = context.read<RatingViewModel>();
-    final success = await ratingViewModel.updateRating(ratingId, newScore, widget.barberId);
+    final success = await ratingViewModel.updateRating(
+      ratingId,
+      newScore,
+      widget.barberId,
+      _userId!,
+    );
 
     if (mounted) {
-      setState(() {
-        _isLoadingRating = false;
-        if (success) {
-          _userRating = newScore;
-        }
-      });
+      setState(() => _isLoadingRating = false);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(success ? ' Cập nhật thành công' : ' ${ratingViewModel.error}'),
-          backgroundColor: success ? Colors.green : Colors.red,
-        ),
-      );
+      if (success) {
+        // Reload lại rating của user
+        await _loadUserRating();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Cập nhật thành công'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('❌ ${ratingViewModel.error}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 
   /// Xóa đánh giá
-  Future<void> _deleteRating(String ratingId) async {
+  Future<void> _deleteRating(int ratingId) async {
+    if (_userId == null) return;
+
     setState(() => _isLoadingRating = true);
 
     final ratingViewModel = context.read<RatingViewModel>();
-    final success = await ratingViewModel.deleteRating(ratingId, widget.barberId);
+    final success = await ratingViewModel.deleteRating(
+      ratingId,
+      widget.barberId,
+      _userId!,
+    );
 
     if (mounted) {
-      setState(() {
-        _isLoadingRating = false;
-        if (success) {
-          _userRating = null;
-        }
-      });
+      setState(() => _isLoadingRating = false);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(success ? 'Đã xóa đánh giá' : ' ${ratingViewModel.error}'),
-          backgroundColor: success ? Colors.green : Colors.red,
-        ),
-      );
+      if (success) {
+        // Reset _userRating
+        setState(() {
+          _userRating = null;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Đã xóa đánh giá'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('❌ ${ratingViewModel.error}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 
