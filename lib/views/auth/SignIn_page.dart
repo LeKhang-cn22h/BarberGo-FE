@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:barbergofe/core/utils/auth_storage.dart';
+import 'package:barbergofe/services/fcm_service.dart';
 import 'package:barbergofe/viewmodels/auth/auth_viewmodel.dart';
 import 'package:barbergofe/viewmodels/auth/sign_in_viewmodel.dart';
 import 'package:barbergofe/views/auth/widgets/GlobalLoading.dart';
@@ -38,7 +39,7 @@ class _SigninPageContent extends StatelessWidget {
 
     // Validate
     final validationPassed = await signInVM.signIn();
-
+    await FcmService().initNotification();
     if (!validationPassed) {
       print(' Validation failed');
       return;
