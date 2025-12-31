@@ -8,6 +8,7 @@ import 'package:barbergofe/viewmodels/booking/booking_history_viewmodel.dart';
 import 'package:barbergofe/viewmodels/booking/booking_viewmodel.dart';
 import 'package:barbergofe/viewmodels/chat/Chat_viewmodel.dart';
 import 'package:barbergofe/viewmodels/home/home_viewmodel.dart';
+import 'package:barbergofe/viewmodels/owner_home/owner_home_viewmodel.dart';
 import 'package:barbergofe/viewmodels/profile/profile_viewmodel.dart';
 import 'package:barbergofe/viewmodels/rating/rating_viewmodel.dart';
 import 'package:barbergofe/viewmodels/service/service_viewmodel.dart';
@@ -50,6 +51,8 @@ class MyApp extends StatelessWidget {
       ChangeNotifierProvider(create: (_) => BookingHistoryViewModel()),
       ChangeNotifierProvider(create: (_) => ChatViewModel()),
       ChangeNotifierProvider(create: (_) => RatingViewModel()),
+      ChangeNotifierProvider(create: (_) => OwnerHomeViewModel()),
+
 
 
 
