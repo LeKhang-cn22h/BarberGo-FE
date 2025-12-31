@@ -2,7 +2,7 @@ import 'package:barbergofe/core/utils/auth_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ApiConfig {
-  static const String devBaseUrl = "http://192.168.1.82:8000";
+  static const String devBaseUrl = "http://192.168.1.89:8000";
   static const String prodBaseUrl = "https://your-production-url.com";
 
   /// Current active base URL (change this when deploying)

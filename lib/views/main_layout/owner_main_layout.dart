@@ -31,9 +31,12 @@ class OwnerMainLayout extends StatelessWidget {
               context.goNamed('owner_booking');
               break;
             case 2:
-              context.goNamed('owner_history');
+              context.goNamed('owner_barber');
               break;
             case 3:
+              context.goNamed('owner_history');
+              break;
+            case 4:
               context.goNamed('owner_profile');
               break;
           }
@@ -41,6 +44,7 @@ class OwnerMainLayout extends StatelessWidget {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Trang chủ'),
           BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Lịch'),
+          BottomNavigationBarItem(icon: Icon(Icons.store), label: 'Tiệm'),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Lịch sử'),
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Cá nhân'),
         ],
@@ -52,8 +56,9 @@ class OwnerMainLayout extends StatelessWidget {
     final location = GoRouterState.of(context).uri.toString();
 
     if (location.startsWith('/owner_booking')) return 1;
-    if (location.startsWith('/owner_history')) return 2;
-    if (location.startsWith('/owner_profile')) return 3;
+    if (location.startsWith('/owner_barber')) return 2;
+    if (location.startsWith('/owner_history')) return 3;
+    if (location.startsWith('/owner_profile')) return 4;
 
     return 0; // default là home
   }

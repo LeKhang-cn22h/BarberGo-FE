@@ -1,10 +1,10 @@
 import 'package:barbergofe/models/barber/barber_model.dart';
 import 'package:barbergofe/views/main_layout/owner_main_layout.dart';
+import 'package:barbergofe/views/ownerBarber/owner_Barber_page.dart';
 import 'package:barbergofe/views/ownerBooking/owner_booking_page.dart';
 import 'package:barbergofe/views/ownerHistory/owner_history_page.dart';
 import 'package:barbergofe/views/ownerHome/owner_home_page.dart';
 import 'package:barbergofe/views/ownerProfile/owner_profile_page.dart';
-import 'package:barbergofe/views/profile/profile_page.dart';
 import 'package:go_router/go_router.dart';
 
 /// ShellRoute dùng cho layout có Bottom Navigation
@@ -69,7 +69,13 @@ final ShellRoute ownershellRoutes = ShellRoute(
         );
       },
     ),
-
+    GoRoute(path: '/owner_barber',
+    name: 'owner_barber',
+    pageBuilder: (context, state) => NoTransitionPage(
+      key:state.pageKey,
+      child: const OwnerBarberPage(),
+    ),
+),
     // ========== HISTORY ==========
     GoRoute(
       path: '/owner_history',
@@ -95,6 +101,7 @@ final ShellRoute ownershellRoutes = ShellRoute(
 String _getTitle(String location) {
   if (location.startsWith('/owner_home')) return 'Trang chủ';
   if (location.startsWith('/owner_booking')) return 'Lịch hẹn';
+  if (location.startsWith('/owner_barber')) return 'Tiệm';
   if (location.startsWith('/owner_history')) return 'Lịch sử';
   if (location.startsWith('/owner_profile')) return 'Cá nhân';
   return '';
