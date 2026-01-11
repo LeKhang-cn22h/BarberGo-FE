@@ -1,3 +1,4 @@
+import 'package:barbergofe/services/simple_notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:barbergofe/models/barber/barber_model.dart';
 import 'package:barbergofe/models/service/service_model.dart';
@@ -189,6 +190,20 @@ class BookingViewModel extends ChangeNotifier {
 
       // Reset form sau khi đặt lịch thành công
       _reset();
+      try {
+        final bookingTime = _parseBookingTime(response.booking);
+        if (bookingTime != null) {
+          await SimpleNotificationService.scheduleReminder(
+            id: response.booking.id,
+            time: bookingTime,
+            title: '⏰ Nhắc lịch đặt',
+            message: 'Còn 30 phút nữa đến lịch của bạn tại ${_selectedBarber?.name ?? "barber"}',
+            minutesBefore: 30,
+          );
+        }
+      } catch (e) {
+        print('⚠️ Notification error: $e');
+      }
 
       return response;
 
@@ -261,5 +276,26 @@ class BookingViewModel extends ChangeNotifier {
   // Clear last booking response
   void clearLastBooking() {
     _lastBookingResponse = null;
+  }
+
+  DateTime? _parseBookingTime(BookingModel booking) {
+    try {
+      if (booking.timeSlots != null) {
+        final slotDate = booking.timeSlots!['slot_date'] as String?;
+        final startTime = booking.timeSlots!['start_time'] as String?;
+
+        if (slotDate != null && startTime != null) {
+          final date = DateTime.parse(slotDate);
+          final timeParts = startTime.split(':');
+          final hour = int.parse(timeParts[0]);
+          final minute = int.parse(timeParts[1]);
+
+          return DateTime(date.year, date.month, date.day, hour, minute);
+        }
+      }
+    } catch (e) {
+      print('❌ Parse time error: $e');
+    }
+    return null;
   }
 }

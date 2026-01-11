@@ -32,7 +32,7 @@ class ProfilePage extends StatelessWidget {
                   // ==================== MENU ITEMS ====================
 
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Column(
                       children: [
                         // Thông tin cá nhân
@@ -89,7 +89,7 @@ class ProfilePage extends StatelessWidget {
                           },
                         ),
 
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 12),
                         ProfileMenuItem(
                           icon: Icons.star,
                           title: 'Đánh giá',

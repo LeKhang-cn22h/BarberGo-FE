@@ -1,12 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:barbergofe/api/barber_api.dart';
-import 'package:barbergofe/api/endpoints/api_config.dart';
-import 'package:barbergofe/api/endpoints/barber_endpoint.dart';
-import 'package:barbergofe/core/utils/auth_storage.dart';
 import 'package:barbergofe/models/barber/barber_model.dart';
-import 'package:http/http.dart' as http;
-import 'package:barbergofe/api/barber_api.dart';
+import 'package:dio/dio.dart';
+
 class BarberService {
   final BarberApi _barberApi = BarberApi();
 
@@ -26,13 +24,22 @@ class BarberService {
     }
   }
 
-  Future<Map<String, dynamic>> updateBarberLocation(String Bid, double lat, double lng) async{
+  Future<Map<String, dynamic>> updateBarberLocation(
+      String Bid,
+      double lat,
+      double lng,
+      ) async {
     try {
-      return await _barberApi.updateBarberLocation(barberId: Bid, lat: lat, lng: lng);
-    }catch (e){
+      return await _barberApi.updateBarberLocation(
+        barberId: Bid,
+        lat: lat,
+        lng: lng,
+      );
+    } catch (e) {
       rethrow;
     }
   }
+
   Future<GetAllBarbersResponse> getBarbersByArea(String area) async {
     try {
       return await _barberApi.getBarbersByArea(area);
@@ -42,88 +49,54 @@ class BarberService {
   }
 
   Future<BarberGetResponse> getBarberById(String id) async {
-    final url = ApiConfig.getUrlWithId(BarberEndpoint.barberGetById, id);
-    print(' GET: $url');
-
     try {
-      final response = await http.get(
-        Uri.parse(url),
-        headers:await ApiConfig.getHeaders(
-          token:await AuthStorage.getAccessToken(),
-        ),
-      ).timeout(ApiConfig.timeout);
-
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final dynamic jsonResponse = json.decode(response.body);
-
-        print('Response type: ${jsonResponse.runtimeType}');
-
-        // Xử lý response cho BarberGetResponse (single barber)
-        BarberModel? barber;
-        bool success = true;
-        String? message;
-
-        if (jsonResponse is List) {
-          print('API returned a List for single barber');
-          if (jsonResponse.isEmpty) {
-            throw Exception('Barber not found');
-          }
-          barber = BarberModel.fromJson(jsonResponse.first);
-        } else if (jsonResponse is Map<String, dynamic>) {
-          print('API returned a Map for single barber');
-
-          // Kiểm tra cấu trúc response
-          if (jsonResponse.containsKey('success')) {
-            success = jsonResponse['success'] ?? true;
-            message = jsonResponse['message'];
-          }
-
-          // Tìm barber trong response
-          if (jsonResponse['data'] != null) {
-            final data = jsonResponse['data'];
-            if (data is Map<String, dynamic>) {
-              barber = BarberModel.fromJson(data);
-            } else if (data is List && data.isNotEmpty) {
-              barber = BarberModel.fromJson(data.first);
-            }
-          } else if (jsonResponse['barber'] != null) {
-            barber = BarberModel.fromJson(jsonResponse['barber']);
-          } else {
-            // Nếu response là barber object trực tiếp
-            try {
-              barber = BarberModel.fromJson(jsonResponse);
-            } catch (e) {
-              print('Cannot parse as barber: $e');
-            }
-          }
-        }
-
-        if (barber == null) {
-          throw Exception('Barber data not found in response');
-        }
-
-        print(' Successfully parsed barber: ${barber.name}');
-
-        // Trả về BarberGetResponse
-        return BarberGetResponse(
-          success: success,
-          message: message,
-          barber: barber,
-          statusCode: 200,
-        );
-
-      } else if (response.statusCode == 404) {
-        throw Exception('Barber not found (404)');
-      } else {
-        final error = json.decode(response.body);
-        throw Exception(error['message'] ?? 'Failed to get barber details');
-      }
+      return await _barberApi.getBarberById(id);
     } catch (e) {
-      print(' Get barber by ID error: $e');
       rethrow;
     }
   }
-}
+
+  Future<GetAllBarbersResponse> getBarberByUser(String userId) async {
+    try {
+      return await _barberApi.getBarberByUser(userId);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<BarberUpdateResponse> updateBarber(
+      String barberId,
+      BarberUpdateRequest request,
+      ) async {
+    try {
+      print('🟢 [SERVICE] updateBarber called');
+      print('🟢 [SERVICE] barberId: $barberId');
+      print('🟢 [SERVICE] request data: ${request.toJson()}');
+
+      //Gọi API trực tiếp với request, KHÔNG tạo FormData
+      return await _barberApi.updateBarber(barberId, request);
+    } catch (e) {
+      print('[SERVICE] Error: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> deactivatedBarber(String barberId) async {
+    try {
+      await _barberApi.deactivatedBarber(barberId);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<GetAllBarbersResponse?> getBarberByOwnerId(String userId) async {
+    try {
+      // Giả sử bạn đã có API endpoint này
+      final response = await _barberApi.getBarberByUser(userId);
+      return response;
+    } catch (e) {
+      print('BarberService - getBarberByOwnerId error: $e');
+
+      return null;
+    }
+  }}

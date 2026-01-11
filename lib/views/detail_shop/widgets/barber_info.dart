@@ -1,4 +1,3 @@
-// lib/pages/detail_shop/widgets/barber_info.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -52,7 +51,7 @@ class _BarberInfoState extends State<BarberInfo> {
       setState(() {
         _userRating = ratingViewModel.currentUserRating?.score;
       });
-      print('🔄 User rating loaded: $_userRating');
+      print(' User rating loaded: $_userRating');
     }
   }
 
@@ -173,7 +172,7 @@ class _BarberInfoState extends State<BarberInfo> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('✅ Đánh giá thành công'),
+              content: Text(' Đánh giá thành công'),
               backgroundColor: Colors.green,
             ),
           );
@@ -182,7 +181,7 @@ class _BarberInfoState extends State<BarberInfo> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('❌ ${ratingViewModel.error}'),
+              content: Text(' ${ratingViewModel.error}'),
               backgroundColor: Colors.red,
             ),
           );
@@ -215,7 +214,7 @@ class _BarberInfoState extends State<BarberInfo> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('✅ Cập nhật thành công'),
+              content: Text('Cập nhật thành công'),
               backgroundColor: Colors.green,
             ),
           );
@@ -224,7 +223,7 @@ class _BarberInfoState extends State<BarberInfo> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('❌ ${ratingViewModel.error}'),
+              content: Text(' ${ratingViewModel.error}'),
               backgroundColor: Colors.red,
             ),
           );
@@ -258,7 +257,7 @@ class _BarberInfoState extends State<BarberInfo> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('✅ Đã xóa đánh giá'),
+              content: Text(' Đã xóa đánh giá'),
               backgroundColor: Colors.green,
             ),
           );
@@ -267,7 +266,7 @@ class _BarberInfoState extends State<BarberInfo> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('❌ ${ratingViewModel.error}'),
+              content: Text(' ${ratingViewModel.error}'),
               backgroundColor: Colors.red,
             ),
           );

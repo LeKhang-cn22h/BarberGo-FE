@@ -97,17 +97,25 @@ class BookingApi {
   }
 
   // ==================== UPDATE BOOKING STATUS ====================
+  // ✅ SỬA: Match với backend endpoint PATCH /bookings/{booking_id}/status?status=...
   Future<BookingStatusUpdateResponse> updateBookingStatus(
       String bookingId,
       String status,
       ) async {
-    final url = Uri.parse(ApiConfig.getUrlWithId(BookingEmdpoint.bookingUpdateStatus, bookingId));
-    final fullUrl = Uri.parse('$url?status=$status');
-    print('PATCH: $fullUrl');
+    // ✅ SỬA: Tạo URL đúng với /status ở path
+    final baseUrl = ApiConfig.getUrlWithIdAndAction(
+        BookingEmdpoint.bookingUpdateStatus,
+        bookingId,
+        'status'
+    );
+    // ✅ SỬA: Thêm query parameter
+    final url = Uri.parse('$baseUrl?status=$status');
+
+    print('🔵 PATCH: $url');
 
     try {
       final response = await http.patch(
-        fullUrl,
+        url,
         headers: await ApiConfig.getHeaders(
           token: await AuthStorage.getAccessToken(),
         ),
@@ -131,7 +139,13 @@ class BookingApi {
 
   // ==================== CANCEL BOOKING ====================
   Future<BookingStatusUpdateResponse> cancelBooking(String bookingId) async {
-    final url = Uri.parse(ApiConfig.getUrlWithIdAndAction(BookingEmdpoint.bookingCancel,bookingId, BookingEmdpoint.bookingCancelAction));
+    final url = Uri.parse(
+        ApiConfig.getUrlWithIdAndAction(
+            BookingEmdpoint.bookingCancel,
+            bookingId,
+            BookingEmdpoint.bookingCancelAction
+        )
+    );
     print('PATCH: $url');
 
     try {
@@ -154,6 +168,37 @@ class BookingApi {
       }
     } catch (e) {
       print('Cancel booking error: $e');
+      rethrow;
+    }
+  }
+
+  // ==================== GET BOOKINGS BY BARBER ====================
+  Future<GetAllBookingsResponse> getBookingsByBarber(String barberId) async {
+    final url = Uri.parse(
+      ApiConfig.getUrlWithId(BookingEmdpoint.bookingGetByBarber, barberId),
+    );
+    print('GET: $url');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: await ApiConfig.getHeaders(
+          token: await AuthStorage.getAccessToken(),
+        ),
+      ).timeout(ApiConfig.timeout);
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final dynamic jsonResponse = json.decode(response.body);
+        return GetAllBookingsResponse.fromJson(jsonResponse);
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to get barber bookings');
+      }
+    } catch (e) {
+      print('Get barber bookings error: $e');
       rethrow;
     }
   }

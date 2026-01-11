@@ -151,4 +151,12 @@ class BookingService {
       return true;
     }
   }
-}
+
+  Future<GetAllBookingsResponse> getBarberBookings(String barberId) async {
+    try {
+      return await _bookingApi.getBookingsByBarber(barberId);
+    } catch (e) {
+      print('BookingService - getBarberBookings error: $e');
+      rethrow;
+    }
+  }}

@@ -4,6 +4,7 @@ import 'package:barbergofe/services/barber_service.dart';
 
 class BarberViewModel extends ChangeNotifier {
   final BarberService _barberService = BarberService();
+
   BarberModel? _selectedBarber;
   BarberModel? get selectedBarber => _selectedBarber;
 
@@ -22,6 +23,7 @@ class BarberViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   String? get selectedArea => _selectedArea;
+
 
   // Fetch top barbers
   Future<void> fetchTopBarbers({int limit = 2}) async {
@@ -122,21 +124,21 @@ class BarberViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
-  Future<void> updateBarberLocation(String Bid, double lat, double lng){
-    _setLoading(true);
-    _error=null;
-    notifyListeners();
-    try{
-      return _barberService.updateBarberLocation(Bid, lat, lng);
-      }catch(e){
-      _error=e.toString();
-      notifyListeners();
-      rethrow;
-    }finally{
-      _setLoading(false);
-      notifyListeners();
-    }
-  }
+  // Future<void> updateBarberLocation(String Bid, double lat, double lng){
+  //   _setLoading(true);
+  //   _error=null;
+  //   notifyListeners();
+  //   try{
+  //     return _barberService.updateBarberLocation(Bid, lat, lng);
+  //     }catch(e){
+  //     _error=e.toString();
+  //     notifyListeners();
+  //     rethrow;
+  //   }finally{
+  //     _setLoading(false);
+  //     notifyListeners();
+  //   }
+  // }
   void clearSelectedBarber() {
     _selectedBarber = null;
     notifyListeners();

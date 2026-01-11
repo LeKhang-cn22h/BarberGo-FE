@@ -44,7 +44,37 @@ class TimeSlotService {
       rethrow;
     }
   }
+  //  Update time slot
+  Future<TimeSlotModel> updateTimeSlot(
+      int timeSlotId,
+      TimeSlotUpdateRequest request,
+      ) async {
+    try {
+      return await _timeSlotApi.updateTimeSlot(timeSlotId, request);
+    } catch (e) {
+      print('TimeSlotService - updateTimeSlot error: $e');
+      rethrow;
+    }
+  }
+//  Toggle availability
+  Future<TimeSlotModel> toggleTimeSlotAvailability(int timeSlotId) async {
+    try {
+      return await _timeSlotApi.toggleTimeSlotAvailability(timeSlotId);
+    } catch (e) {
+      print('TimeSlotService - toggleTimeSlotAvailability error: $e');
+      rethrow;
+    }
+  }
 
+  // Delete time slot
+  Future<void> deleteTimeSlot(int timeSlotId) async {
+    try {
+      await _timeSlotApi.deleteTimeSlot(timeSlotId);
+    } catch (e) {
+      print('TimeSlotService - deleteTimeSlot error: $e');
+      rethrow;
+    }
+  }
   // ==================== HELPER METHODS ====================
 
   List<TimeSlotModel> filterByDate(List<TimeSlotModel> timeSlots, DateTime date) {
@@ -97,4 +127,14 @@ class TimeSlotService {
     }
     return true;
   }
-}
+
+  Future<List<TimeSlotModel>> bulkCreateTimeSlots(
+      TimeSlotBulkCreateRequest request,
+      ) async {
+    try {
+      return await _timeSlotApi.bulkCreateTimeSlots(request);
+    } catch (e) {
+      print('TimeSlotService - bulkCreateTimeSlots error: $e');
+      rethrow;
+    }
+  }}

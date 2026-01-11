@@ -6,6 +6,7 @@ import 'package:barbergofe/views/booking/service_selection_page.dart';
 import 'package:barbergofe/views/chat/chat_page.dart';
 import 'package:barbergofe/views/location/location_picker_page.dart';
 import 'package:barbergofe/views/map/osm_map_screen.dart';
+import 'package:barbergofe/views/ownerRating/ownerRating_page.dart';
 import 'package:barbergofe/views/profile/PartnerSignUpForm.dart';
 import 'package:barbergofe/views/profile/appointment_detail_page.dart';
 import 'package:barbergofe/views/profile/change_password_page.dart';
@@ -222,7 +223,17 @@ class AppRouter {
           );
         },
       ),
-
+      GoRoute(
+        path: '/owner/barber/:barberId/ratings',
+        name: 'owner_rating',
+        pageBuilder: (context, state) {
+          final barberId = state.pathParameters['barberId']!;
+          return MaterialPage(
+              key: state.pageKey,
+              child:OwnerRatingPage(barberId: barberId) )
+            ;
+        },
+      ),
       GoRoute(
         path: '/service-selection',
         name: 'service-selection',

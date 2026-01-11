@@ -1,7 +1,9 @@
+// lib/viewmodels/owner_home/owner_home_viewmodel.dart
+
 import 'package:flutter/material.dart';
 import 'package:barbergofe/services/booking_service.dart';
 import 'package:barbergofe/services/time_slot_service.dart';
-import 'package:barbergofe/services/service_service.dart';
+import 'package:barbergofe/services/barber_service.dart';
 import 'package:barbergofe/models/booking/booking_model.dart';
 import 'package:barbergofe/models/time_slot/time_slot_model.dart';
 import 'package:barbergofe/core/utils/auth_storage.dart';
@@ -9,12 +11,13 @@ import 'package:barbergofe/core/utils/auth_storage.dart';
 class OwnerHomeViewModel extends ChangeNotifier {
   final BookingService _bookingService = BookingService();
   final TimeSlotService _timeSlotService = TimeSlotService();
-  final ServiceService _serviceService = ServiceService();
+  final BarberService _barberService = BarberService();
 
   // State
   bool _isLoading = false;
   bool _isStoreOpen = true;
   String? _error;
+  String? _barberId;
 
   // Data
   List<BookingModel> _allBookings = [];
@@ -46,31 +49,46 @@ class OwnerHomeViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final barberId = await _getBarberId();
+      print('🔄 Starting initialization...');
 
+      // ✅ 1. Lấy barberId từ owner
+      _barberId = await _getBarberId();
+      print('✅ Barber ID: $_barberId');
+
+      // ✅ 2. Load data song song
       await Future.wait([
-        _fetchTodayTimeSlots(barberId),
-        _fetchTodayBookings(barberId),
+        _fetchTodayTimeSlots(_barberId!),
+        _fetchTodayBookings(_barberId!),
       ]);
 
+      // ✅ 3. Tính toán stats
       _calculateStats();
       _findUpcomingBooking();
+
+      print('✅ Initialization complete');
+      print('   - Time slots: ${_todayTimeSlots.length}');
+      print('   - Bookings: ${_allBookings.length}');
+      print('   - Total slots: $_totalSlots');
+      print('   - Booked: $_bookedSlots');
+      print('   - Available: $_availableSlots');
 
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _error = e.toString();
+      _error = 'Lỗi tải dữ liệu: ${e.toString()}';
       _isLoading = false;
       notifyListeners();
-      print(' Error initializing: $e');
+      print('❌ Error initializing: $e');
     }
   }
 
-  /// Fetch time slots hôm nay
+  /// ✅ SỬA: Fetch time slots hôm nay
   Future<void> _fetchTodayTimeSlots(String barberId) async {
     try {
       final today = DateTime.now();
       final dateStr = _formatDate(today);
+
+      print('🔍 Fetching time slots for barber: $barberId, date: $dateStr');
 
       final response = await _timeSlotService.getTimeSlotsByBarber(
         barberId,
@@ -78,66 +96,114 @@ class OwnerHomeViewModel extends ChangeNotifier {
       );
 
       _todayTimeSlots = _timeSlotService.sortByTime(response.timeSlots);
-      print(' Loaded ${_todayTimeSlots.length} time slots');
+      print('✅ Loaded ${_todayTimeSlots.length} time slots');
+
+      // Debug: In ra từng slot
+      for (var slot in _todayTimeSlots) {
+        print('   Slot #${slot.id}: ${slot.startTime} - ${slot.endTime}, available: ${slot.isAvailable}');
+      }
     } catch (e) {
-      print(' Error fetching time slots: $e');
+      print('❌ Error fetching time slots: $e');
       rethrow;
     }
   }
 
-  /// Fetch bookings hôm nay
+  /// ✅ SỬA: Fetch bookings của BARBER hôm nay (không phải user)
   Future<void> _fetchTodayBookings(String barberId) async {
     try {
-      // Get userId từ barber để lấy bookings
-      final userId = await AuthStorage.getUserId();
-      if (userId == null) throw Exception('User not logged in');
+      print('🔍 Fetching bookings for barber: $barberId');
 
-      final response = await _bookingService.getUserBookings(userId);
+      // ✅ QUAN TRỌNG: Dùng getBarberBookings thay vì getUserBookings
+      final response = await _bookingService.getBarberBookings(barberId);
 
-      // Filter bookings hôm nay
+      print('📦 Raw bookings count: ${response.bookings.length}');
+
+      // ✅ Filter bookings hôm nay
       final today = DateTime.now();
       _allBookings = response.bookings.where((booking) {
-        if (booking.timeSlots == null) return false;
+        if (booking.timeSlots == null) {
+          print('⚠️ Booking #${booking.id} has no time_slots');
+          return false;
+        }
+
         final slotDateStr = booking.timeSlots!['slot_date']?.toString();
-        if (slotDateStr == null) return false;
+        if (slotDateStr == null) {
+          print('⚠️ Booking #${booking.id} has no slot_date');
+          return false;
+        }
 
         try {
           final slotDate = DateTime.parse(slotDateStr);
-          return slotDate.year == today.year &&
+          final isToday = slotDate.year == today.year &&
               slotDate.month == today.month &&
               slotDate.day == today.day;
+
+          if (isToday) {
+            print('✅ Booking #${booking.id} is today: ${booking.status}');
+          }
+
+          return isToday;
         } catch (e) {
+          print('❌ Error parsing date for booking #${booking.id}: $e');
           return false;
         }
       }).toList();
 
-      print('Loaded ${_allBookings.length} bookings today');
+      print('✅ Filtered ${_allBookings.length} bookings for today');
+
+      // Debug: In ra từng booking
+      for (var booking in _allBookings) {
+        print('   Booking #${booking.id}: status=${booking.status}, slot_id=${booking.timeSlotId}');
+      }
     } catch (e) {
-      print('Error fetching bookings: $e');
+      print('❌ Error fetching bookings: $e');
       rethrow;
     }
   }
 
-  /// Calculate statistics
+  /// ✅ SỬA: Calculate statistics
   void _calculateStats() {
     _totalSlots = _todayTimeSlots.length;
-    _bookedSlots = _todayTimeSlots.where((slot) => !slot.isAvailable).length;
+
+    // ✅ Đếm slots đã đặt dựa trên bookings
+    _bookedSlots = 0;
+    for (var slot in _todayTimeSlots) {
+      // Tìm booking cho slot này
+      final hasBooking = _allBookings.any((booking) =>
+      booking.timeSlotId == slot.id &&
+          booking.status.toLowerCase() != 'cancelled'
+      );
+
+      if (hasBooking) {
+        _bookedSlots++;
+      }
+    }
+
     _availableSlots = _totalSlots - _bookedSlots;
 
-    print('Stats: Total=$_totalSlots, Booked=$_bookedSlots, Available=$_availableSlots');
+    print('📊 Stats calculated:');
+    print('   Total: $_totalSlots');
+    print('   Booked: $_bookedSlots');
+    print('   Available: $_availableSlots');
+    print('   Percentage: ${bookingPercentage.toStringAsFixed(1)}%');
   }
 
-  /// Find upcoming booking (sắp diễn ra gần nhất)
+  /// ✅ SỬA: Find upcoming booking
   void _findUpcomingBooking() {
     final now = DateTime.now();
+
+    print('🔍 Finding upcoming booking...');
 
     // Lọc bookings confirmed
     final confirmedBookings = _allBookings
         .where((b) => b.status.toLowerCase() == 'confirmed')
         .toList();
 
+    print('   Found ${confirmedBookings.length} confirmed bookings');
+
     if (confirmedBookings.isEmpty) {
       _upcomingBooking = null;
+      print('   No confirmed bookings');
       return;
     }
 
@@ -151,13 +217,19 @@ class OwnerHomeViewModel extends ChangeNotifier {
     // Tìm booking đầu tiên sau thời điểm hiện tại
     for (var booking in confirmedBookings) {
       final startTime = _parseTime(booking.timeSlots?['start_time']?.toString() ?? '');
+
+      print('   Checking booking #${booking.id}: start=${startTime.hour}:${startTime.minute}');
+
       if (startTime.isAfter(now)) {
         _upcomingBooking = booking;
+        print('✅ Upcoming booking found: #${booking.id}');
         return;
       }
     }
 
-    _upcomingBooking = null;
+    // Nếu không có booking nào sau giờ hiện tại, lấy booking đầu tiên
+    _upcomingBooking = confirmedBookings.first;
+    print('✅ Using first booking as upcoming: #${_upcomingBooking!.id}');
   }
 
   /// Toggle store status
@@ -165,22 +237,26 @@ class OwnerHomeViewModel extends ChangeNotifier {
     _isStoreOpen = !_isStoreOpen;
     notifyListeners();
 
+    print('${_isStoreOpen ? "🟢 Store OPENED" : "🔴 Store CLOSED"}');
+
     // TODO: Call API to update store status
-    print('${_isStoreOpen ? "Store OPENED" : " Store CLOSED"}');
+    // await _barberService.updateBarberStatus(_barberId!, _isStoreOpen);
   }
 
   /// Check-in customer
   Future<void> checkInCustomer(int bookingId) async {
     try {
+      print('🔄 Checking in booking #$bookingId');
+
       await _bookingService.updateBookingStatus(
         bookingId.toString(),
         'in_progress',
       );
 
+      print('✅ Customer checked in');
       await initialize(); // Refresh data
-      print(' Customer checked in');
     } catch (e) {
-      print(' Error checking in: $e');
+      print('❌ Error checking in: $e');
       rethrow;
     }
   }
@@ -188,15 +264,17 @@ class OwnerHomeViewModel extends ChangeNotifier {
   /// Complete booking
   Future<void> completeBooking(int bookingId) async {
     try {
+      print('🔄 Completing booking #$bookingId');
+
       await _bookingService.updateBookingStatus(
         bookingId.toString(),
         'completed',
       );
 
+      print('✅ Booking completed');
       await initialize(); // Refresh data
-      print('Booking completed');
     } catch (e) {
-      print('Error completing booking: $e');
+      print('❌ Error completing booking: $e');
       rethrow;
     }
   }
@@ -208,10 +286,26 @@ class OwnerHomeViewModel extends ChangeNotifier {
 
   // ==================== HELPER METHODS ====================
 
+  /// ✅ SỬA: Lấy barberId từ user hiện tại
   Future<String> _getBarberId() async {
-    final userId = await AuthStorage.getUserId();
-    if (userId == null) throw Exception('User not logged in');
-    return userId;
+    try {
+      final userId = await AuthStorage.getUserId();
+      if (userId == null) {
+        throw Exception('User not logged in');
+      }
+
+      // ✅ Lấy barber của owner này
+      final barber = await _barberService.getBarberByOwnerId(userId);
+
+      if (barber == null) {
+        throw Exception('No barber found for this owner');
+      }
+
+      return barber.barbers.first.id.toString();
+    } catch (e) {
+      print('❌ Error getting barber ID: $e');
+      rethrow;
+    }
   }
 
   String _formatDate(DateTime date) {
@@ -245,33 +339,34 @@ class OwnerHomeViewModel extends ChangeNotifier {
     return startTime.difference(now).inMinutes;
   }
 
-  /// Get schedule item status
+  /// ✅ SỬA: Get schedule item status
   String getScheduleItemStatus(TimeSlotModel timeSlot) {
-    if (!timeSlot.isAvailable) {
-      // Find booking for this time slot
-      final booking = _allBookings.firstWhere(
-            (b) => b.timeSlotId == timeSlot.id,
-        orElse: () => BookingModel(
-          id: 0,
-          userId: '',
-          status: '',
-          timeSlotId: 0,
-          totalDurationMin: 0,
-          totalPrice: 0,
-        ),
-      );
+    // Tìm booking cho slot này
+    final booking = _allBookings.firstWhere(
+          (b) => b.timeSlotId == timeSlot.id && b.status.toLowerCase() != 'cancelled',
+      orElse: () => BookingModel(
+        id: 0,
+        userId: '',
+        status: '',
+        timeSlotId: 0,
+        totalDurationMin: 0,
+        totalPrice: 0,
+      ),
+    );
 
-      if (booking.id > 0) {
-        switch (booking.status.toLowerCase()) {
-          case 'completed':
-            return 'completed';
-          case 'in_progress':
-            return 'in_progress';
-          default:
-            return 'booked';
-        }
+    if (booking.id > 0) {
+      switch (booking.status.toLowerCase()) {
+        case 'completed':
+          return 'completed';
+        case 'in_progress':
+          return 'in_progress';
+        case 'confirmed':
+          return 'booked';
+        default:
+          return 'booked';
       }
     }
+
     return 'available';
   }
 
@@ -279,7 +374,7 @@ class OwnerHomeViewModel extends ChangeNotifier {
   BookingModel? getBookingForSlot(TimeSlotModel timeSlot) {
     try {
       return _allBookings.firstWhere(
-            (b) => b.timeSlotId == timeSlot.id,
+            (b) => b.timeSlotId == timeSlot.id && b.status.toLowerCase() != 'cancelled',
       );
     } catch (e) {
       return null;

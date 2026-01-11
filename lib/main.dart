@@ -7,6 +7,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:barbergofe/services/fcm_service.dart';
+import 'package:barbergofe/services/simple_notification_service.dart';
+
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -37,6 +39,8 @@ Future<void> main() async{
 
   final googleAuthService = GoogleAuthService();
   await googleAuthService.initialize();
+  await SimpleNotificationService.init();
+
   runApp(MyApp(googleAuthService: googleAuthService));
 }
 /// Restore Supabase session từ AuthStorage

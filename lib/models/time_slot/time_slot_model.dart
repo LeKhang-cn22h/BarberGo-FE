@@ -40,7 +40,7 @@ class TimeSlotModel {
     };
   }
 
-  // ✅ THÊM METHOD FORMAT THỜI GIAN
+  //METHOD FORMAT THỜI GIAN
   String _formatTimeString(String timeStr) {
     try {
       final parts = timeStr.split(':');
@@ -70,7 +70,7 @@ class TimeSlotModel {
     }
   }
 
-  // ✅ SỬA: Format thời gian chỉ lấy giờ:phút (bỏ giây)
+  // Format thời gian chỉ lấy giờ:phút (bỏ giây)
   String get formattedTime {
     final start = _formatTimeString(startTime);
     final end = _formatTimeString(endTime);
@@ -149,6 +149,32 @@ class TimeSlotCreateRequest {
       'end_time': endTime,
       'is_available': isAvailable,
     };
+  }
+}
+class TimeSlotUpdateRequest {
+  final String? startTime;
+  final String? endTime;
+  final bool? isAvailable;
+  final DateTime? slotDate;
+
+  TimeSlotUpdateRequest({
+    this.startTime,
+    this.endTime,
+    this.isAvailable,
+    this.slotDate,
+  });
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+
+    if (startTime != null) map['start_time'] = startTime;
+    if (endTime != null) map['end_time'] = endTime;
+    if (isAvailable != null) map['is_available'] = isAvailable;
+    if (slotDate != null) {
+      map['slot_date'] = slotDate!.toIso8601String().split('T')[0];
+    }
+
+    return map;
   }
 }
 

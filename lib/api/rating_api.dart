@@ -108,7 +108,7 @@ class RatingApi {
       ).timeout(ApiConfig.timeout);
 
       print('Response status: ${response.statusCode}');
-
+      print('Response body: ${response.body}');
       if (response.statusCode == 200) {
         final List<dynamic> jsonList = json.decode(response.body);
         return jsonList.map((json) => RatingWithUser.fromJson(json)).toList();
@@ -135,9 +135,11 @@ class RatingApi {
       ).timeout(ApiConfig.timeout);
 
       print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
+        print('Barber average response: $jsonResponse');
         return BarberAverageRating.fromJson(jsonResponse);
       } else {
         final error = json.decode(response.body);

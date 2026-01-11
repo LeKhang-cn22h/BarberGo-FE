@@ -131,6 +131,7 @@ class BarberUpdateRequest {
   final String? address;
   final double? rank;
   final bool? status;
+  final String? imagePath;
 
   BarberUpdateRequest({
     this.name,
@@ -139,6 +140,7 @@ class BarberUpdateRequest {
     this.address,
     this.rank,
     this.status,
+    this.imagePath
   });
 
   Map<String, dynamic> toJson() {
@@ -150,6 +152,8 @@ class BarberUpdateRequest {
     if (address != null) data['address'] = address;
     if (rank != null) data['rank'] = rank;
     if (status != null) data['status'] = status;
+    if (imagePath != null) data['image_path'] = imagePath;
+
 
     return data;
   }

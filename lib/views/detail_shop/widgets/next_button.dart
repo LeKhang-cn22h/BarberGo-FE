@@ -1,4 +1,4 @@
-// widgets/next_button.dart
+// widgets/owner_next_button.dart
 import 'package:flutter/material.dart';
 
 class NextButton extends StatelessWidget {

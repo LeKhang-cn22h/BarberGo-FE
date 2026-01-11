@@ -44,8 +44,8 @@ class BookingModel {
       updatedAt: json['updated_at'] != null
           ? DateTime.parse(json['updated_at'])
           : null,
-      user: json['user'] is Map
-          ? Map<String, dynamic>.from(json['user'])
+      user: json['users'] is Map
+          ? Map<String, dynamic>.from(json['users'])
           : null,
 
       // ⚠️ SỬA: Parse time_slots (có s)

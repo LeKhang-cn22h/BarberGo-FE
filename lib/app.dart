@@ -4,8 +4,10 @@ import 'package:barbergofe/services/google_auth_service.dart';
 import 'package:barbergofe/viewmodels/appointment/appointment_viewmodel.dart';
 import 'package:barbergofe/viewmodels/auth/auth_viewmodel.dart';
 import 'package:barbergofe/viewmodels/barber/barber_viewmodel.dart';
+import 'package:barbergofe/viewmodels/barber/owner_barber_viewmodel.dart';
 import 'package:barbergofe/viewmodels/booking/booking_history_viewmodel.dart';
 import 'package:barbergofe/viewmodels/booking/booking_viewmodel.dart';
+import 'package:barbergofe/viewmodels/booking/owner_booking_history_viewmodel.dart';
 import 'package:barbergofe/viewmodels/chat/Chat_viewmodel.dart';
 import 'package:barbergofe/viewmodels/home/home_viewmodel.dart';
 import 'package:barbergofe/viewmodels/owner_home/owner_home_viewmodel.dart';
@@ -26,45 +28,40 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(providers: [
-      Provider<GoogleAuthService>.value(
-        value: googleAuthService,
-      ),
-      ChangeNotifierProvider(create: (_) => AuthViewModel(googleAuthService: googleAuthService)..init(),
+    return // main.dart - CÁCH ĐƠN GIẢN NHẤT
 
-      ),
-      ChangeNotifierProvider(
-        create: (_) => ProfileViewModel(),
-      ),
-      ChangeNotifierProvider(
-        create: (_) => AppointmentViewModel(),
-      ),
-      ChangeNotifierProvider(
-        create: (context) => HomeViewModel(),
-      ),
-      ChangeNotifierProvider(
-        create: (context) => BarberViewModel(),
-      ),
-      ChangeNotifierProvider(create: (context) => ServiceViewModel()),
-      ChangeNotifierProvider(create: (_) => BookingViewModel()),
-      ChangeNotifierProvider(create: (_) => TimeSlotViewModel()),
-      ChangeNotifierProvider(create: (_) => BookingHistoryViewModel()),
-      ChangeNotifierProvider(create: (_) => ChatViewModel()),
-      ChangeNotifierProvider(create: (_) => RatingViewModel()),
-      ChangeNotifierProvider(create: (_) => OwnerHomeViewModel()),
+      MultiProvider(
+        providers: [
+          Provider<GoogleAuthService>.value(
+            value: googleAuthService,
+          ),
+          ChangeNotifierProvider(
+            create: (_) => AuthViewModel(googleAuthService: googleAuthService)..init(),
+          ),
+          ChangeNotifierProvider(create: (_) => ProfileViewModel()),
+          ChangeNotifierProvider(create: (_) => AppointmentViewModel()),
+          ChangeNotifierProvider(create: (context) => HomeViewModel()),
+          ChangeNotifierProvider(create: (context) => BarberViewModel()),
+          ChangeNotifierProvider(create: (context) => ServiceViewModel()),
+          ChangeNotifierProvider(create: (_) => BookingViewModel()),
+          ChangeNotifierProvider(create: (_) => TimeSlotViewModel()),
+          ChangeNotifierProvider(create: (_) => BookingHistoryViewModel()),
+          ChangeNotifierProvider(create: (_) => ChatViewModel()),
+          ChangeNotifierProvider(create: (_) => RatingViewModel()),
 
+          ChangeNotifierProvider(create: (_) => OwnerBarberViewModel()),
 
+          ChangeNotifierProvider(create: (_) => OwnerHomeViewModel()),
 
-
-    ],
-      child:
-      MaterialApp.router(
-      title: CommonStrings.appName,
-      debugShowCheckedModeBanner: false,
-      routerConfig: AppRouter.router,
-      theme: AppTheme.lightTheme,
-    )
-    );
+          ChangeNotifierProvider(create: (_) => OwnerBookingHistoryViewModel()),
+        ],
+        child: MaterialApp.router(
+          title: CommonStrings.appName,
+          debugShowCheckedModeBanner: false,
+          routerConfig: AppRouter.router,
+          theme: AppTheme.lightTheme,
+        ),
+      );
   }
 }
 

@@ -116,6 +116,55 @@ class ServiceService {
         : b.durationMin.compareTo(a.durationMin));
     return sorted;
   }
+// ==================== CREATE SERVICE ====================
+  Future<ServiceCreateResponse> createService(
+      ServiceCreateRequest request) async {
+    try {
+      return await _serviceApi.createService(request);
+    } catch (e) {
+      print('ServiceService - createService error: $e');
+      rethrow;
+    }
+  }
+// ==================== UPDATE SERVICE ====================
+  Future<ServiceUpdateResponse> updateService(
+      String serviceId,
+      ServiceUpdateRequest request,
+      ) async {
+    try {
+      return await _serviceApi.updateService(serviceId, request);
+    } catch (e) {
+      print('ServiceService - updateService error: $e');
+      rethrow;
+    }
+  }
+// ==================== DELETE SERVICE (SOFT) ====================
+  Future<ServiceStatusResponse> deleteService(String serviceId) async {
+    try {
+      return await _serviceApi.deleteService(serviceId);
+    } catch (e) {
+      print('ServiceService - deleteService error: $e');
+      rethrow;
+    }
+  }
+// ==================== RESTORE SERVICE ====================
+  Future<ServiceStatusResponse> restoreService(String serviceId) async {
+    try {
+      return await _serviceApi.restoreService(serviceId);
+    } catch (e) {
+      print('ServiceService - restoreService error: $e');
+      rethrow;
+    }
+  }
+// ==================== TOGGLE SERVICE STATUS ====================
+  Future<ServiceStatusResponse> toggleServiceStatus(String serviceId) async {
+    try {
+      return await _serviceApi.toggleServiceStatus(serviceId);
+    } catch (e) {
+      print('ServiceService - toggleServiceStatus error: $e');
+      rethrow;
+    }
+  }
 
   // ==================== HELPER METHODS ====================
 

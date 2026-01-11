@@ -1,3 +1,4 @@
+import 'package:barbergofe/services/simple_notification_service.dart';
 import 'package:barbergofe/viewmodels/auth/auth_viewmodel.dart';
 import 'package:barbergofe/views/profile/widgets/profile_header.dart';
 import 'package:barbergofe/views/profile/widgets/profile_menu_item.dart';
@@ -44,23 +45,13 @@ class OwnerProfilePage extends StatelessWidget {
                           },
                         ),
 
-                        const SizedBox(height: 12),
-
-                        // Đăng ký đối tác
-                        ProfileMenuItem(
-                          icon: Icons.people_outline,
-                          title: 'Đăng ký đối tác',
-                          onTap: () {
-                            context.pushNamed('Partneregistration');
-                          },
-                        ),
 
                         const SizedBox(height: 12),
 
                         // Địa chỉ
                         ProfileMenuItem(
                           icon: Icons.location_on_outlined,
-                          title: 'Địa chỉ',
+                          title: 'Bản đồ',
                           onTap: () {
                             // context.pushNamed('location_picker');
                             context.pushNamed('Map');
@@ -88,15 +79,6 @@ class OwnerProfilePage extends StatelessWidget {
                             _showSettingsBottomSheet(context, authVM);
                           },
                         ),
-
-                        const SizedBox(height: 32),
-                        ProfileMenuItem(
-                          icon: Icons.star,
-                          title: 'Đánh giá',
-                          onTap: () {
-                            context.pushNamed('user_rating');
-                          },
-                        )
                       ],
                     ),
                   ),

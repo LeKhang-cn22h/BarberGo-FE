@@ -13,4 +13,17 @@ class BarberEndpoint{
 
   ///Get /barbers/location/{id}
   static const String barberUpdateLocation="/barbers/location";
+
+  ///Lấy danh sách barbers của một user /user/{user_id}"
+ static const String barberGetofUser ="/barbers/user";
+
+ //cập nhật thông tin barber theo ID /{barber_id}
+ static const String barberUpdateId="/barbers";
+
+
+  //soft delete barber theo ID /{barber_id}/deactivate
+  static const String barberDeactivateId="/barbers";
+
+//delete barber theo ID /{barber_id}
+  static const String barberDeleteId="/barbers";
 }
