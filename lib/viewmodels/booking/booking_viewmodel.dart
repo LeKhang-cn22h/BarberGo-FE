@@ -216,6 +216,32 @@ class BookingViewModel extends ChangeNotifier {
       _setLoading(false);
     }
   }
+  Map<String, dynamic>? getRebookInfo(BookingModel booking) {
+    try {
+      // Lấy barber ID
+      final barberId = booking.barberId;
+
+      // Lấy service IDs từ booking.services
+      final serviceIds = booking.services?.map((s) => s['id'] as int).toList() ?? [];
+
+      if (barberId == null || serviceIds.isEmpty) {
+        print(' Cannot rebook: missing barber or services');
+        return null;
+      }
+
+      print(' Rebook info prepared:');
+      print('   Barber ID: $barberId');
+      print('   Service IDs: $serviceIds');
+
+      return {
+        'barberId': barberId,
+        'serviceIds': serviceIds,
+      };
+    } catch (e) {
+      print('❌ Error preparing rebook info: $e');
+      return null;
+    }
+  }
 
   // ==================== HELPER METHODS ====================
   void _clearTimeSlots() {

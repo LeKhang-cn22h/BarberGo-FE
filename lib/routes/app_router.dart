@@ -2,8 +2,10 @@
 import 'package:barbergofe/routes/owner_shell_routes.dart';
 import 'package:barbergofe/views/Barbers/Areas_page.dart';
 import 'package:barbergofe/views/Barbers/Barbers_page.dart';
+import 'package:barbergofe/views/acne/acne_history_screen.dart';
 import 'package:barbergofe/views/booking/service_selection_page.dart';
 import 'package:barbergofe/views/chat/chat_page.dart';
+import 'package:barbergofe/views/hair/hair_history_screen.dart';
 import 'package:barbergofe/views/location/location_picker_page.dart';
 import 'package:barbergofe/views/map/osm_map_screen.dart';
 import 'package:barbergofe/views/ownerRating/ownerRating_page.dart';
@@ -142,7 +144,14 @@ class AppRouter {
           );
         },
       ),
-
+      GoRoute(
+        path: RouteNames.hairHistory,
+        name: 'hair_history',
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: const HairHistoryScreen(),
+        ),
+      ),
       GoRoute(
         path: RouteNames.succes,
         name: 'succes',
@@ -153,6 +162,13 @@ class AppRouter {
       ),
 
       // ==================== FEATURE ROUTES ====================
+      GoRoute(path:RouteNames.HistoryAcne,
+      name: 'history_acne',
+        pageBuilder: (context, state)=> MaterialPage(
+            child: const AcneHistoryScreen(),
+          key: state.pageKey
+        )
+      ),
       GoRoute(
         path: RouteNames.acnes,
         name: 'acne',

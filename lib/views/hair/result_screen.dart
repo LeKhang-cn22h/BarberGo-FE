@@ -1,38 +1,45 @@
+
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:barbergofe/models/hair/hairstyle_model.dart';
+import 'package:barbergofe/services/hair_storage_service..dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 
-
-class ResultScreen extends StatelessWidget {
+class ResultScreen extends StatefulWidget {
   final File originalImage;
   final HairStyleResponse resultImage;
+  final String styleName;
 
   ResultScreen({
     required this.originalImage,
     required this.resultImage,
+    this.styleName = 'Unknown Style',
   });
 
   @override
+  State<ResultScreen> createState() => _ResultScreenState();
+}
+
+class _ResultScreenState extends State<ResultScreen> {
+  bool _isSaved = false;
+
+  @override
   Widget build(BuildContext context) {
-    final bytes = resultImage.imageBase64 != null
-        ? base64.decode(resultImage.imageBase64!)
+    final bytes = widget.resultImage.imageBase64 != null
+        ? base64.decode(widget.resultImage.imageBase64!)
         : Uint8List(0);
 
     return Scaffold(
       appBar: AppBar(
         title: Text('Kết quả'),
-        // actions: [
-        //   IconButton(
-        //     icon: Icon(Icons.share),
-        //     onPressed: () => _shareResult(context),
-        //   ),
-        //   IconButton(
-        //     icon: Icon(Icons.download),
-        //     onPressed: () => _saveImage(context, bytes),
-        //   ),
-        // ],
+        actions: [
+          IconButton(
+            icon: Icon(_isSaved ? Icons.bookmark : Icons.bookmark_border),
+            onPressed: () => _handleSave(bytes),
+            tooltip: _isSaved ? 'Đã lưu' : 'Lưu kết quả',
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -52,7 +59,7 @@ class ResultScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
                             image: DecorationImage(
-                              image: FileImage(originalImage),
+                              image: FileImage(widget.originalImage),
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -88,30 +95,7 @@ class ResultScreen extends StatelessWidget {
                 ],
               ),
 
-              SizedBox(height: 30),
-
-              // Result details
-              // Card(
-              //   child: Padding(
-              //     padding: const EdgeInsets.all(16.0),
-              //     child: Column(
-              //       crossAxisAlignment: CrossAxisAlignment.start,
-              //       children: [
-              //         Text(
-              //           'Generation Details',
-              //           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              //         ),
-              //         SizedBox(height: 10),
-              //         _buildDetailRow('Style', resultImage.style),
-              //         if (resultImage.seed != null)
-              //           _buildDetailRow('Seed', resultImage.seed.toString()),
-              //         _buildDetailRow('Face Detected', resultImage.faceDetected ? 'Yes' : 'No'),
-              //       ],
-              //     ),
-              //   ),
-              // ),
-
-              // SizedBox(height: 20),
+              SizedBox(height: 20),
 
               // Action buttons
               Row(
@@ -131,6 +115,22 @@ class ResultScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  SizedBox(width: 10),
+
+                  // ✅ NÚT LƯU (BOTTOM)
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _isSaved ? null : () => _handleSave(bytes),
+                      icon: Icon(_isSaved ? Icons.check : Icons.save),
+                      label: Text(_isSaved ? 'Đã lưu' : 'Lưu'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _isSaved ? Colors.green : Colors.purple,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(vertical: 15),
+                      ),
+                    ),
+                  ),
+
                   SizedBox(width: 10),
                   Expanded(
                     child: ElevatedButton.icon(
@@ -156,7 +156,7 @@ class ResultScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(8.0),
                     child: Column(
                       children: [
-                        Text('Kết quả', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text('Kết quả đầy đủ', style: TextStyle(fontWeight: FontWeight.bold)),
                         SizedBox(height: 10),
                         Image.memory(bytes, fit: BoxFit.contain),
                       ],
@@ -170,27 +170,62 @@ class ResultScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        children: [
-          Text('$label: ', style: TextStyle(fontWeight: FontWeight.bold)),
-          Expanded(child: Text(value)),
-        ],
-      ),
-    );
-  }
+  // HANDLER LƯU
+  Future<void> _handleSave(Uint8List resultBytes) async {
+    if (resultBytes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Không có ảnh để lưu'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
 
-  void _shareResult(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Share functionality coming soon')),
-    );
-  }
+    try {
+      // Hiển thị loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
 
-  void _saveImage(BuildContext context, Uint8List bytes) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Save to gallery coming soon')),
-    );
+      // Lưu kết quả
+      await HairStorageService.saveHairResult(
+        originalImage: widget.originalImage,
+        resultImage: resultBytes,
+        styleName: widget.styleName,
+      );
+
+      // Đóng loading
+      if (mounted) {
+        Navigator.pop(context);
+
+        setState(() {
+          _isSaved = true;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Đã lưu kết quả!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      // Đóng loading
+      if (mounted) {
+        Navigator.pop(context);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(' Lỗi: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

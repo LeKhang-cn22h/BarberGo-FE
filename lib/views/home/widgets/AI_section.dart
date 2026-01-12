@@ -21,7 +21,7 @@ class AiSection extends StatelessWidget {
               icon: Icons.face,
               label: 'AI tạo tóc',
               onTap: (){
-                context.pushNamed('hair');
+                context.pushNamed('hair_history');
               },
             ),
             Aiconsultationitem(
@@ -29,7 +29,7 @@ class AiSection extends StatelessWidget {
               label: 'AI trị mụn',
               onTap: () {
                 print("Nút AI trị mụn được bấm");
-                context.pushNamed('acne');
+                context.pushNamed('history_acne');
               },
             ),
 

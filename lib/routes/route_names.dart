@@ -27,6 +27,9 @@ class RouteNames{
   static const String owner_booking = '/owner_booking';
   static const String owner_history = '/owner_history';
   static const String owner_profile = '/owner_profile';
+  static const String HistoryAcne='/history_acne';
+  static const String hairHistory = '/hair-history';
+
 //EROR
   static const String notFound = '/404';
 

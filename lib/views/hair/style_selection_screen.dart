@@ -291,6 +291,7 @@ class _StyleSelectionScreenState extends State<StyleSelectionScreen> {
           builder: (context) => ResultScreen(
             originalImage: widget.capturedImage,
             resultImage: result,
+            styleName: _styles.firstWhere((s) => s.id == _selectedStyleId).name,
           ),
         ),
       );

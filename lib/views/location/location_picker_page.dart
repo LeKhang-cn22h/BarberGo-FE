@@ -1,8 +1,9 @@
+// lib/views/location/location_picker_page.dart
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
-import '../../services/location_service.dart';
+import 'package:barbergofe/services/map_service.dart';
 
 class LocationPickerPage extends StatefulWidget {
   final double? initialLat;
@@ -10,459 +11,362 @@ class LocationPickerPage extends StatefulWidget {
   final String? initialAddress;
 
   const LocationPickerPage({
-    Key? key,
+    super.key,
     this.initialLat,
     this.initialLng,
     this.initialAddress,
-  }) : super(key: key);
+  });
 
   @override
   State<LocationPickerPage> createState() => _LocationPickerPageState();
 }
 
 class _LocationPickerPageState extends State<LocationPickerPage> {
-  GoogleMapController? _mapController;
-  LatLng? _currentPosition;
-  String _currentAddress = 'Đang tải địa chỉ...';
-  bool _isLoading = true;
-  bool _isLoadingAddress = false;
+  final MapController _mapController = MapController();
+  final TextEditingController _searchController = TextEditingController();
+  final MapService _mapService = MapService();
 
-  Set<Marker> _markers = {};
+  late LatLng _selectedLocation;
+  String? _selectedAddress;
+  bool _isLoading = false;
+
+  // Default: Hồ Chí Minh
+  final LatLng _defaultLocation = const LatLng(10.7721, 106.6983);
 
   @override
   void initState() {
     super.initState();
-    _initializeLocation();
+
+    // Khởi tạo vị trí
+    if (widget.initialLat != null && widget.initialLng != null) {
+      _selectedLocation = LatLng(widget.initialLat!, widget.initialLng!);
+      _selectedAddress = widget.initialAddress;
+    } else {
+      _selectedLocation = _defaultLocation;
+      _getCurrentLocation();
+    }
+
+    if (widget.initialAddress != null) {
+      _searchController.text = widget.initialAddress!;
+    }
   }
 
   @override
   void dispose() {
-    _mapController?.dispose();
+    _mapController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
-  // ==================== INITIALIZE LOCATION ====================
+  // Lấy vị trí hiện tại
+  Future<void> _getCurrentLocation() async {
+    setState(() => _isLoading = true);
 
-  Future<void> _initializeLocation() async {
     try {
-      setState(() {
-        _isLoading = true;
-      });
-
-      // Nếu có initial position, dùng nó
-      if (widget.initialLat != null && widget.initialLng != null) {
-        _currentPosition = LatLng(widget.initialLat!, widget.initialLng!);
-        _currentAddress = widget.initialAddress ?? 'Đang tải địa chỉ...';
-
-        _addMarker(_currentPosition!);
-
-        // Get address if not provided
-        if (widget.initialAddress == null) {
-          _updateAddress(_currentPosition!);
-        }
-      } else {
-        // Get current location
-        Position? position = await LocationService.getCurrentLocation();
-
-        if (position != null) {
-          _currentPosition = LatLng(position.latitude, position.longitude);
-
-          // Add marker
-          _addMarker(_currentPosition!);
-
-          // Get address
-          await _updateAddress(_currentPosition!);
-
-          // Move camera
-          _mapController?.animateCamera(
-            CameraUpdate.newLatLngZoom(_currentPosition!, 16),
-          );
-        }
+      final hasPermission = await _mapService.checkLocationPermission();
+      if (!hasPermission) {
+        _showError('Cần cấp quyền truy cập vị trí');
+        setState(() => _isLoading = false);
+        return;
       }
 
+      final position = await _mapService.getPositionStream().first;
+      final location = LatLng(position.latitude, position.longitude);
+
       setState(() {
+        _selectedLocation = location;
         _isLoading = false;
       });
 
+      _mapController.move(_selectedLocation, 15.0);
+      _updateAddress();
     } catch (e) {
-      print('❌ Initialize location error: $e');
+      print('❌ Error getting location: $e');
+      setState(() => _isLoading = false);
+      _showError('Không thể lấy vị trí hiện tại');
+    }
+  }
 
+  // Cập nhật địa chỉ từ tọa độ
+  Future<void> _updateAddress() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final address = await _mapService.getAddress(_selectedLocation);
       setState(() {
+        _selectedAddress = address ?? 'Không xác định được địa chỉ';
+        _searchController.text = _selectedAddress!;
         _isLoading = false;
-        _currentAddress = 'Không thể lấy vị trí';
       });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Lỗi: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
-          ),
-        );
-      }
-    }
-  }
-
-  // ==================== UPDATE ADDRESS ====================
-
-  Future<void> _updateAddress(LatLng position) async {
-    setState(() {
-      _isLoadingAddress = true;
-      _currentAddress = 'Đang tải địa chỉ...';
-    });
-
-    try {
-      String address = await LocationService.getAddressFromCoordinates(
-        latitude: position.latitude,
-        longitude: position.longitude,
-      );
-
-      setState(() {
-        _currentAddress = address;
-        _isLoadingAddress = false;
-      });
-
-      // Update marker
-      _addMarker(position);
-
     } catch (e) {
-      print('❌ Get address error: $e');
-      setState(() {
-        _currentAddress = 'Không thể lấy địa chỉ';
-        _isLoadingAddress = false;
-      });
+      print('❌ Error getting address: $e');
+      setState(() => _isLoading = false);
     }
   }
 
-  // ==================== ADD MARKER ====================
+  // Tìm kiếm địa điểm
+  Future<void> _searchLocation(String query) async {
+    if (query.isEmpty) return;
 
-  void _addMarker(LatLng position) {
-    setState(() {
-      _markers.clear();
-      _markers.add(
-        Marker(
-          markerId: MarkerId('selected_location'),
-          position: position,
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueViolet, // ✅ Màu tím cho brand
-          ),
-          draggable: true,
-          onDragEnd: (newPosition) {
-            _onMarkerDrag(newPosition);
-          },
-        ),
-      );
-    });
-  }
+    setState(() => _isLoading = true);
 
-  // ==================== ON MAP CREATED ====================
-
-  void _onMapCreated(GoogleMapController controller) {
-    _mapController = controller;
-
-    if (_currentPosition != null) {
-      controller.animateCamera(
-        CameraUpdate.newLatLngZoom(_currentPosition!, 16),
-      );
-    }
-  }
-
-  // ==================== ON TAP MAP ====================
-
-  void _onTapMap(LatLng position) {
-    print('🔵 Map tapped: ${position.latitude}, ${position.longitude}');
-
-    setState(() {
-      _currentPosition = position;
-    });
-
-    _addMarker(position);
-    _updateAddress(position);
-  }
-
-  // ==================== ON MARKER DRAG ====================
-
-  void _onMarkerDrag(LatLng position) {
-    print('🔵 Marker dragged: ${position.latitude}, ${position.longitude}');
-
-    setState(() {
-      _currentPosition = position;
-    });
-
-    _updateAddress(position);
-  }
-
-  // ==================== GET MY LOCATION ====================
-
-  Future<void> _getMyLocation() async {
     try {
-      setState(() {
-        _isLoading = true;
-      });
+      final result = await _mapService.searchPlace(query);
 
-      Position? position = await LocationService.getCurrentLocation();
-
-      if (position != null) {
-        final newPosition = LatLng(position.latitude, position.longitude);
+      if (result != null) {
+        final point = result['point'] as LatLng;
+        final name = result['displayName'] as String;
 
         setState(() {
-          _currentPosition = newPosition;
+          _selectedLocation = point;
+          _selectedAddress = name;
+          _searchController.text = name;
+          _isLoading = false;
         });
 
-        _addMarker(newPosition);
-        _updateAddress(newPosition);
-
-        // Animate camera
-        _mapController?.animateCamera(
-          CameraUpdate.newLatLngZoom(newPosition, 16),
-        );
+        _mapController.move(point, 15.0);
+      } else {
+        _showError('Không tìm thấy địa điểm');
+        setState(() => _isLoading = false);
       }
-
-      setState(() {
-        _isLoading = false;
-      });
-
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Lỗi: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      print('❌ Search error: $e');
+      setState(() => _isLoading = false);
+      _showError('Lỗi tìm kiếm');
     }
   }
 
-  // ==================== CONFIRM LOCATION ====================
+  // Xử lý tap trên bản đồ
+  void _handleMapTap(TapPosition tapPosition, LatLng point) {
+    setState(() {
+      _selectedLocation = point;
+    });
+    _updateAddress();
+  }
 
+  // Xác nhận chọn vị trí
   void _confirmLocation() {
-    if (_currentPosition != null) {
-      // Return location data
-      context.pop({
-        'latitude': _currentPosition!.latitude,
-        'longitude': _currentPosition!.longitude,
-        'address': _currentAddress,
-      });
-    }
+    context.pop({
+      'lat': _selectedLocation.latitude,
+      'lng': _selectedLocation.longitude,
+      'address': _selectedAddress,
+    });
   }
 
-  // ==================== BUILD ====================
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF5B4B8A),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => context.pop(),
-        ),
-        title: const Text(
-          'Chọn vị trí',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
+        title: const Text('Chọn vị trí cửa hàng'),
+        actions: [
+          if (_isLoading)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
       body: Stack(
         children: [
-          // ==================== GOOGLE MAP ====================
-
-          _currentPosition != null
-              ? GoogleMap(
-            onMapCreated: _onMapCreated,
-            initialCameraPosition: CameraPosition(
-              target: _currentPosition!,
-              zoom: 16,
+          // Bản đồ
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: _selectedLocation,
+              initialZoom: 15.0,
+              onTap: _handleMapTap,
             ),
-            markers: _markers,
-            onTap: _onTapMap,
-            myLocationEnabled: true,
-            myLocationButtonEnabled: false, // Custom button below
-            zoomControlsEnabled: false,
-            mapToolbarEnabled: false,
-            compassEnabled: true,
-          )
-              : Center(
-            child: _isLoading
-                ? Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(
-                  color: Color(0xFF5B4B8A),
-                ),
-                SizedBox(height: 16),
-                Text('Đang tải bản đồ...'),
-              ],
-            )
-                : Text('Không thể tải bản đồ'),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.barbergofe.map',
+              ),
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: _selectedLocation,
+                    width: 60,
+                    height: 60,
+                    child: const Icon(
+                      Icons.location_on,
+                      color: Colors.red,
+                      size: 50,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
 
-          // ==================== ADDRESS CARD ====================
-
+          // Search bar ở trên
           Positioned(
             top: 16,
             left: 16,
             right: 16,
             child: Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: 8,
+              elevation: 4,
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                child: Row(
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Color(0xFF5B4B8A).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            Icons.location_on,
-                            color: Color(0xFF5B4B8A),
-                            size: 20,
-                          ),
+                    const Icon(Icons.search, color: Colors.grey),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: const InputDecoration(
+                          hintText: 'Tìm kiếm địa điểm...',
+                          border: InputBorder.none,
                         ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Địa chỉ đã chọn',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ),
-                        if (_isLoadingAddress)
-                          SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Color(0xFF5B4B8A),
-                            ),
-                          ),
-                      ],
-                    ),
-                    SizedBox(height: 12),
-                    Text(
-                      _currentAddress,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.black87,
-                        height: 1.4,
+                        onSubmitted: _searchLocation,
                       ),
                     ),
-                    if (_currentPosition != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          'Lat: ${_currentPosition!.latitude.toStringAsFixed(6)}, '
-                              'Lng: ${_currentPosition!.longitude.toStringAsFixed(6)}',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchController.clear();
+                      },
+                    ),
                   ],
                 ),
               ),
             ),
           ),
 
-          // ==================== MY LOCATION BUTTON ====================
-
+          // Info panel ở dưới
           Positioned(
-            right: 16,
-            bottom: 140,
-            child: FloatingActionButton(
-              onPressed: _getMyLocation,
-              backgroundColor: Colors.white,
-              child: Icon(
-                Icons.my_location,
-                color: Color(0xFF5B4B8A),
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 10,
+                    offset: Offset(0, -5),
+                  ),
+                ],
               ),
-            ),
-          ),
-
-          // ==================== CONFIRM BUTTON ====================
-
-          Positioned(
-            bottom: 24,
-            left: 16,
-            right: 16,
-            child: ElevatedButton(
-              onPressed: _currentPosition != null && !_isLoadingAddress
-                  ? _confirmLocation
-                  : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF5B4B8A),
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 4,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.check_circle, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    'XÁC NHẬN VỊ TRÍ',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
+                  // Tiêu đề
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on, color: Colors.red),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Vị trí đã chọn',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Địa chỉ
+                  if (_selectedAddress != null)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              _selectedAddress!,
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+
+                  const SizedBox(height: 12),
+
+                  // Tọa độ
+                  Row(
+                    children: [
+                      const Icon(Icons.gps_fixed, size: 16, color: Colors.grey),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Lat: ${_selectedLocation.latitude.toStringAsFixed(6)}, '
+                            'Lng: ${_selectedLocation.longitude.toStringAsFixed(6)}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Buttons
+                  Row(
+                    children: [
+                      // Nút lấy vị trí hiện tại
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _getCurrentLocation,
+                          icon: const Icon(Icons.my_location, size: 18),
+                          label: const Text('Vị trí hiện tại'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      // Nút xác nhận
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton.icon(
+                          onPressed: _confirmLocation,
+                          icon: const Icon(Icons.check, size: 18),
+                          label: const Text('Xác nhận'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
           ),
-
-          // ==================== LOADING OVERLAY ====================
-
-          if (_isLoading)
-            Container(
-              color: Colors.black45,
-              child: Center(
-                child: Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircularProgressIndicator(
-                          color: Color(0xFF5B4B8A),
-                        ),
-                        SizedBox(height: 16),
-                        Text('Đang lấy vị trí...'),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
         ],
       ),
     );

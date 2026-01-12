@@ -2,9 +2,6 @@ import 'dart:io';
 import 'package:barbergofe/models/hair/hairstyle_model.dart';
 import 'package:barbergofe/models/hair/hairstyle_repository.dart';
 import 'package:flutter/material.dart';
-
-
-
 enum HairStyleState {
   initial,
   loading,

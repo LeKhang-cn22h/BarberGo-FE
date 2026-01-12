@@ -196,39 +196,30 @@ class BarberApi {
     required double lng,
   }) async {
     final url = Uri.parse(
-      ApiConfig.getUrlWithId(
-        BarberEndpoint.barberUpdateLocation,
-        barberId,
-      ),
+      '${ApiConfig.baseUrl}/barbers/location/$barberId',
     );
 
-    try {
-      final body = {
-        "location": {
-          "lat": lat,
-          "lng": lng,
-        }
-      };
+    print('🔵 PATCH $url');
 
-      final response = await http
-          .patch(
+    try {
+      final response = await http.patch(
         url,
-        headers: await ApiConfig.getHeaders(
-          token: await AuthStorage.getAccessToken(),
-        ),
-        body: jsonEncode(body),
-      )
-          .timeout(ApiConfig.timeout);
+        headers: {
+          'Authorization': 'Bearer ${await AuthStorage.getAccessToken()}',
+          // ✅ KHÔNG set Content-Type
+        },
+        body: {
+          'lat': lat.toString(),
+          'lng': lng.toString(),
+        },
+      ).timeout(ApiConfig.timeout);
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return jsonDecode(response.body);
       } else {
-        throw Exception(
-          'Update barber location failed: ${response.statusCode} - ${response.body}',
-        );
+        throw Exception('Failed: ${response.statusCode}');
       }
     } catch (e) {
-      print('Update barber location error: $e');
       rethrow;
     }
   }

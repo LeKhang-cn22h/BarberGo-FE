@@ -3,7 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/acne/acne_response.dart';
-
+import 'package:share_plus/share_plus.dart';
+import 'package:open_file/open_file.dart';
+import '../../services/acne_storage_service.dart';
+import '../../services/acne_pdf_service.dart';
 class AcneResultScreen extends StatelessWidget {
   final AcneResponse response;
   final File capturedImage;
@@ -788,54 +791,255 @@ class AcneResultScreen extends StatelessWidget {
   }
 
   // ==================== ACTION BUTTONS ====================
-
   Widget _buildActionButtons(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () {
-                context.pop();
-              },
-              icon: const Icon(Icons.camera_alt),
-              label: const Text('Chụp lại'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+          // Row 1: Lưu và Xuất
+          Row(
+            children: [
+              // Nút Lưu JSON
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _handleSaveJson(context),
+                  icon: const Icon(Icons.save),
+                  label: const Text('Lưu kết quả'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                 ),
-                elevation: 0,
               ),
-            ),
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: () {
-                Navigator.popUntil(context, (route) => route.isFirst);
-              },
-              icon: const Icon(Icons.home),
-              label: const Text('Trang chủ'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.blue,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+          const SizedBox(height: 12),
+          // Row 3: Chụp lại và Trang chủ
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => context.pop(),
+                  icon: const Icon(Icons.camera_alt),
+                  label: const Text('Chụp lại'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                 ),
-                side: const BorderSide(color: Colors.blue, width: 2),
               ),
-            ),
+
+              const SizedBox(width: 12),
+
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.popUntil(context, (route) => route.isFirst);
+                  },
+                  icon: const Icon(Icons.home),
+                  label: const Text('Trang chủ'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    side: const BorderSide(color: Colors.blue, width: 2),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
+
   // ==================== HELPER METHODS ====================
+  /// Lưu kết quả dưới dạng JSON
+  Future<void> _handleSaveJson(BuildContext context) async {
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      final jsonPath = await AcneStorageService.saveResultAsJson(
+        response: response,
+        image: capturedImage,
+      );
+
+      final imagePath = await AcneStorageService.saveImage(capturedImage);
+
+      Navigator.pop(context); // Đóng loading
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('✅ Đã lưu kết quả!'),
+          backgroundColor: Colors.green,
+          action: SnackBarAction(
+            label: 'Xem',
+            textColor: Colors.white,
+            onPressed: () async {
+              await OpenFile.open(jsonPath);
+            },
+          ),
+        ),
+      );
+    } catch (e) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Lỗi: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  /// Xuất PDF
+  Future<void> _handleExportPdf(BuildContext context) async {
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('Đang tạo PDF...'),
+            ],
+          ),
+        ),
+      );
+
+      final pdfPath = await AcnePdfService.exportToPdf(
+        response: response,
+        image: capturedImage,
+      );
+
+      Navigator.pop(context); // Đóng loading
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('✅ Đã xuất PDF!'),
+          backgroundColor: Colors.green,
+          action: SnackBarAction(
+            label: 'Mở',
+            textColor: Colors.white,
+            onPressed: () async {
+              await OpenFile.open(pdfPath);
+            },
+          ),
+        ),
+      );
+    } catch (e) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Lỗi: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  /// Xuất Text Report
+  Future<void> _handleExportText(BuildContext context) async {
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      final textPath = await AcneStorageService.exportAsTextReport(
+        response: response,
+        image: capturedImage,
+      );
+
+      Navigator.pop(context);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('✅ Đã xuất Text!'),
+          backgroundColor: Colors.green,
+          action: SnackBarAction(
+            label: 'Mở',
+            textColor: Colors.white,
+            onPressed: () async {
+              await OpenFile.open(textPath);
+            },
+          ),
+        ),
+      );
+    } catch (e) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Lỗi: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  /// Chia sẻ kết quả
+  Future<void> _handleShare(BuildContext context) async {
+    try {
+      // Tạo PDF trước
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('Đang chuẩn bị...'),
+            ],
+          ),
+        ),
+      );
+
+      final pdfPath = await AcnePdfService.exportToPdf(
+        response: response,
+        image: capturedImage,
+      );
+
+      Navigator.pop(context);
+
+      // Chia sẻ file
+      await Share.shareXFiles(
+        [XFile(pdfPath)],
+        subject: 'Kết quả phân tích mụn',
+        text: 'Kết quả phân tích mụn từ BarberGo',
+      );
+    } catch (e) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Lỗi: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   String _getVietnameseName(String key) {
     const map = {
