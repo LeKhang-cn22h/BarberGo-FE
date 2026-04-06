@@ -1,5 +1,3 @@
-// lib/views/ownerBarber/widgets/edit_service_dialog.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:barbergofe/models/service/service_model.dart';
@@ -116,7 +114,6 @@ class _EditServiceDialogState extends State<EditServiceDialog> {
           icon: const Icon(Icons.delete, color: Colors.red),
           label: const Text('Xóa', style: TextStyle(color: Colors.red)),
         ),
-        const Spacer(),
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: const Text('Hủy'),
@@ -135,6 +132,7 @@ class _EditServiceDialogState extends State<EditServiceDialog> {
           child: const Text('Lưu'),
         ),
       ],
+      actionsAlignment: MainAxisAlignment.spaceBetween,
     );
   }
 }

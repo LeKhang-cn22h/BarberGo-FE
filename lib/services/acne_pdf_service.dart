@@ -14,7 +14,7 @@ class AcnePdfService {
     required File image,
   }) async {
     try {
-      print('📄 [PDF] Starting PDF export...');
+      print(' [PDF] Starting PDF export...');
 
       // Tạo PDF document
       final pdf = pw.Document();
@@ -86,11 +86,11 @@ class AcnePdfService {
       final file = File(pdfPath);
       await file.writeAsBytes(await pdf.save());
 
-      print('✅ [PDF] Saved: $pdfPath');
+      print(' [PDF] Saved: $pdfPath');
       return pdfPath;
 
     } catch (e) {
-      print('❌ [PDF] Error: $e');
+      print(' [PDF] Error: $e');
       rethrow;
     }
   }
@@ -164,7 +164,7 @@ class AcnePdfService {
                 borderRadius: pw.BorderRadius.circular(4),
               ),
               child: pw.Text(
-                '⚠️ Nên gặp bác sĩ da liễu để được tư vấn',
+                ' Nên gặp bác sĩ da liễu để được tư vấn',
                 style: pw.TextStyle(
                   fontSize: 12,
                   fontWeight: pw.FontWeight.bold,

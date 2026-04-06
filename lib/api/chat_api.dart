@@ -9,6 +9,8 @@ import '../models/chat/update_session_request.dart';
 import '../models/chat/chat_history_response.dart';
 import '../models/chat/chat_sessions_response.dart';
 import 'endpoints/chat_endpoint.dart';
+import '../models/chat/barber_search_response.dart';
+
 
 class ChatAPI {
   // ==================== CHAT ====================
@@ -211,6 +213,44 @@ class ChatAPI {
       }
     } catch (e) {
       print(' Delete session error: $e');
+      rethrow;
+    }
+  }
+  /// Tìm kiếm tiệm barber bằng vector search
+  Future<BarberSearchResponse> searchBarber({
+    required String query,
+    int topK = 3,
+    double threshold = 0.5,
+  }) async {
+    final uri = Uri.parse(
+      ApiConfig.getUrl(ChatEndpoint.SearchBarber),
+    ).replace(queryParameters: {
+      'q': query,
+      'top_k': topK.toString(),
+      'threshold': threshold.toString(),
+    });
+
+    print(' GET: $uri');
+
+    try {
+      final response = await http.get(
+        uri,
+        headers: await ApiConfig.getHeaders(
+          token: await AuthStorage.getAccessToken(),
+        ),
+      ).timeout(ApiConfig.timeout);
+
+      print('Response status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+        return BarberSearchResponse.fromJson(data);
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['detail'] ?? 'Failed to search barber');
+      }
+    } catch (e) {
+      print(' Search barber error: $e');
       rethrow;
     }
   }

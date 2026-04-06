@@ -1,5 +1,3 @@
-// lib/views/ownerHistory/widgets/owner_booking_list.dart
-
 import 'package:flutter/material.dart';
 import 'package:barbergofe/models/booking/booking_model.dart';
 import 'owner_booking_item.dart';

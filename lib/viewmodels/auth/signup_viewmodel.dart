@@ -4,7 +4,7 @@ class SignUpViewModel extends ChangeNotifier {
   // Controllers
   final fullNameController = TextEditingController();
   final emailController = TextEditingController();
-  final phoneController = TextEditingController(); // ⭐ Thêm phone (optional)
+  final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
@@ -114,13 +114,6 @@ class SignUpViewModel extends ChangeNotifier {
       return false;
     }
 
-    // Optional: Check for password strength
-    // if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$').hasMatch(password)) {
-    //   passwordError = 'Mật khẩu phải có cả chữ và số';
-    //   notifyListeners();
-    //   return false;
-    // }
-
     passwordError = null;
     notifyListeners();
     return true;
@@ -150,7 +143,7 @@ class SignUpViewModel extends ChangeNotifier {
   // ==================== VALIDATE ALL ====================
 
   bool validateInputs() {
-    print('🔵 [SIGNUP VIEWMODEL] Validating all fields...');
+    print(' [SIGNUP VIEWMODEL] Validating all fields...');
 
     final fullNameValid = _validateFullName();
     final emailValid = _validateEmail();
@@ -165,9 +158,9 @@ class SignUpViewModel extends ChangeNotifier {
         confirmPasswordValid;
 
     if (isValid) {
-      print('✅ [SIGNUP VIEWMODEL] All fields valid');
+      print(' [SIGNUP VIEWMODEL] All fields valid');
     } else {
-      print('❌ [SIGNUP VIEWMODEL] Validation failed');
+      print(' [SIGNUP VIEWMODEL] Validation failed');
       if (fullNameError != null) print('   - Full Name: $fullNameError');
       if (emailError != null) print('   - Email: $emailError');
       if (phoneError != null) print('   - Phone: $phoneError');
@@ -183,11 +176,11 @@ class SignUpViewModel extends ChangeNotifier {
   /// Sign up method - Returns true if validation passed
   /// Actual registration will be handled by AuthViewModel
   Future<bool> signUp() async {
-    print('🔵 [SIGNUP VIEWMODEL] Sign up called');
+    print('[SIGNUP VIEWMODEL] Sign up called');
 
     // Validate all fields
     if (!validateInputs()) {
-      print('❌ [SIGNUP VIEWMODEL] Validation failed');
+      print('[SIGNUP VIEWMODEL] Validation failed');
       return false;
     }
 
@@ -200,7 +193,7 @@ class SignUpViewModel extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
 
-    print('✅ [SIGNUP VIEWMODEL] Validation passed');
+    print('[SIGNUP VIEWMODEL] Validation passed');
     return true;
   }
 

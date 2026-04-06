@@ -1,5 +1,4 @@
 import 'package:barbergofe/viewmodels/owner_home/owner_home_viewmodel.dart';
-import 'package:barbergofe/views/ownerHome/widgets/owner_header_card.dart';
 import 'package:barbergofe/views/ownerHome/widgets/schedule_list.dart';
 import 'package:barbergofe/views/ownerHome/widgets/stats_row.dart';
 import 'package:barbergofe/views/ownerHome/widgets/upcoming_section.dart';
@@ -57,11 +56,6 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header với toggle
-                  OwnerHeaderCard(viewModel: viewModel),
-
-                  const SizedBox(height: 16),
-
                   // 3 stats cards
                   StatsRow(viewModel: viewModel),
 

@@ -1,30 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:barbergofe/models/chat/chat_message.dart'; // Check import path
-import 'package:barbergofe/viewmodels/chat/Chat_viewmodel.dart'; // Check import path
+import 'package:barbergofe/viewmodels/chat/Chat_viewmodel.dart';
+import 'message_bubble.dart';
+import 'barber_suggest_card.dart';
 
 class ChatArea extends StatefulWidget {
   final bool showMobileMenu;
-
-  const ChatArea({super.key, this.showMobileMenu = false});
+  const ChatArea({super.key, required this.showMobileMenu});
 
   @override
   State<ChatArea> createState() => _ChatAreaState();
 }
 
 class _ChatAreaState extends State<ChatArea> {
-  final TextEditingController _textController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
+  final _scrollController = ScrollController();
 
-  void _sendMessage() {
-    final text = _textController.text;
-    if (text.isEmpty) return;
-
-    context.read<ChatViewModel>().sendMessage(text);
-    _textController.clear();
-    // ... code scroll cũ của bạn ...
-    Future.delayed(const Duration(milliseconds: 100), () {
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
@@ -37,158 +29,172 @@ class _ChatAreaState extends State<ChatArea> {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<ChatViewModel>();
-    final messages = viewModel.messages;
+    return Consumer<ChatViewModel>(
+      builder: (context, vm, _) {
+        // Auto scroll khi có message mới
+        if (vm.messages.isNotEmpty) _scrollToBottom();
 
-    return Column(
-      children: [
-        // --- HEADER CHO MOBILE (MỚI) ---
-        if (widget.showMobileMenu)
-          AppBar(
-            backgroundColor: Colors.transparent, // Trong suốt để tiệp màu nền
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.menu, color: Colors.white),
-              onPressed: () {
-                // Mở Drawer
-                Scaffold.of(context).openDrawer();
-              },
-            ),
-            title: const Text("BarberAI Chat", style: TextStyle(color: Colors.white, fontSize: 18)),
-            centerTitle: true,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.home, color: Colors.white),
-                onPressed: () => context.goNamed('home')
-              )
-            ],
-          ),
-
-
-        // --- Danh sách tin nhắn ---
-        Expanded(
-          child: viewModel.sessionId == null && messages.isEmpty // Lưu ý: check logic sessionId hay currentSessionId cho khớp viewmodel
-              ? _buildWelcomeView()
-              : viewModel.isLoadingMessages
-              ? const Center(child: CircularProgressIndicator())
-              : ListView.builder(
-            controller: _scrollController,
-            padding: const EdgeInsets.all(20),
-            itemCount: messages.length + (viewModel.isSending ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index == messages.length) {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text("BarberAI đang trả lời...",
-                        style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)
-                    ),
-                  ),
-                );
-              }
-              return _MessageBubble(message: messages[index]);
-            },
-          ),
-        ),
-
-        // --- Ô nhập liệu (Giữ nguyên) ---
-        Container(
-          padding: const EdgeInsets.all(16),
-          color: const Color(0xFF131314),
-          child: Center(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 800),
-              decoration: BoxDecoration(
-                color: const Color(0xFF2D2E2F),
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: Colors.white12),
-              ),
+        return Column(
+          children: [
+            // Top bar
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              color: const Color(0xFF1E1E1E),
               child: Row(
                 children: [
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextField(
-                      controller: _textController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        hintText: "Nhập câu hỏi tại đây...",
-                        hintStyle: TextStyle(color: Colors.grey),
-                        border: InputBorder.none,
+                  if (widget.showMobileMenu)
+                    IconButton(
+                      icon: const Icon(Icons.menu, color: Colors.white),
+                      onPressed: () => Scaffold.of(context).openDrawer(),
+                    ),
+                  const Expanded(
+                    child: Text(
+                      'BarberGo AI',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                       ),
-                      onSubmitted: (_) => _sendMessage(),
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(
-                        Icons.send_rounded,
-                        color: viewModel.isSending ? Colors.grey : Colors.blueAccent
-                    ),
-                    onPressed: viewModel.isSending ? null : _sendMessage,
-                  ),
-                  const SizedBox(width: 8),
                 ],
               ),
             ),
-          ),
-        ),
-      ],
+
+            // Messages
+            Expanded(
+              child: vm.isLoadingMessages
+                  ? const Center(child: CircularProgressIndicator())
+                  : vm.messages.isEmpty
+                  ? _buildEmptyState(vm)
+                  : ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(16),
+                itemCount: vm.messages.length,
+                itemBuilder: (context, index) =>
+                    MessageBubble(message: vm.messages[index]),
+              ),
+            ),
+
+            // Barber suggest results
+            if (vm.suggestResults.isNotEmpty) ...[
+              Container(
+                height: 140,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: vm.suggestResults.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) => BarberSuggestCard(
+                    result: vm.suggestResults[index],
+                    onTap: () {
+                      // Gửi câu hỏi chi tiết về tiệm này
+                      vm.sendMessage(
+                        'Cho tôi biết thêm về ${vm.suggestResults[index].barberName}',
+                      );
+                      vm.clearSuggest();
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+
+            // Input box
+            _buildInputBox(context, vm),
+          ],
+        );
+      },
     );
   }
-  Widget _buildWelcomeView() {
+
+  Widget _buildEmptyState(ChatViewModel vm) {
     return Center(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Icon(Icons.auto_awesome, size: 60, color: Colors.blueAccent),
-          SizedBox(height: 20),
-          Text(
-            "Xin chào, tôi có thể giúp gì?",
-            style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.cut, size: 48, color: Colors.white30),
+          const SizedBox(height: 12),
+          const Text(
+            'Xin chào! Tôi có thể giúp gì cho bạn?',
+            style: TextStyle(color: Colors.white54, fontSize: 16),
           ),
-          SizedBox(height: 10),
-          Text(
-            "Chọn một cuộc hội thoại hoặc bắt đầu chat mới.",
-            style: TextStyle(color: Colors.grey),
+          const SizedBox(height: 20),
+          // Gợi ý nhanh
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: [
+              'Tiệm nào gần đây?',
+              'Giá cắt tóc bao nhiêu?',
+              'Đặt lịch như thế nào?',
+            ].map((hint) => ActionChip(
+              label: Text(hint, style: const TextStyle(color: Colors.white70)),
+              backgroundColor: const Color(0xFF2A2A2A),
+              onPressed: () => vm.sendMessage(hint),
+            )).toList(),
           ),
         ],
       ),
     );
   }
-}
-class _MessageBubble extends StatelessWidget {
-  final ChatMessage message;
 
-  const _MessageBubble({Key? key, required this.message}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final isUser = message.role == 'user';
-    return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        padding: const EdgeInsets.all(12),
-        constraints: const BoxConstraints(maxWidth: 600), // Không cho bubble quá dài
-        decoration: BoxDecoration(
-          color: isUser ? const Color(0xFF005C97) : const Color(0xFF2D2E2F), // Xanh cho user, Xám cho AI
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(12),
-            topRight: const Radius.circular(12),
-            bottomLeft: isUser ? const Radius.circular(12) : Radius.zero,
-            bottomRight: isUser ? Radius.zero : const Radius.circular(12),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Nội dung tin nhắn
-            Text(
-              message.content,
-              style: const TextStyle(color: Colors.white, fontSize: 16, height: 1.4),
+  Widget _buildInputBox(BuildContext context, ChatViewModel vm) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      color: const Color(0xFF1E1E1E),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: vm.inputController,
+              style: const TextStyle(color: Colors.white),
+              maxLines: null,
+              decoration: InputDecoration(
+                hintText: 'Nhập câu hỏi...',
+                hintStyle: const TextStyle(color: Colors.white38),
+                filled: true,
+                fillColor: const Color(0xFF2A2A2A),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20, vertical: 12,
+                ),
+              ),
+              onSubmitted: (v) => vm.sendMessage(v),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 8),
+          // Nút suggest barber
+          IconButton(
+            onPressed: vm.isSearching
+                ? null
+                : () => vm.searchBarber(vm.inputController.text),
+            icon: vm.isSearching
+                ? const SizedBox(
+              width: 20, height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+                : const Icon(Icons.store_mall_directory_outlined,
+                color: Colors.amber),
+            tooltip: 'Tìm tiệm',
+          ),
+          // Nút gửi
+          IconButton(
+            onPressed: vm.isSending
+                ? null
+                : () => vm.sendMessage(vm.inputController.text),
+            icon: vm.isSending
+                ? const SizedBox(
+              width: 20, height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+                : const Icon(Icons.send_rounded, color: Colors.blue),
+          ),
+        ],
       ),
     );
   }

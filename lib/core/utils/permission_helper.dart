@@ -7,20 +7,20 @@ class PermissionHelper {
   // ==================== CHECK & REQUEST PHOTO LIBRARY ====================
 
   static Future<bool> requestPhotoLibraryPermission(BuildContext context) async {
-    print('🔵 [PERMISSION] Checking photo library permission...');
+    print(' [PERMISSION] Checking photo library permission...');
 
     // Check current status
     PermissionStatus status = await Permission.photos.status;
 
     // If already granted
     if (status.isGranted) {
-      print('✅ [PERMISSION] Photo library already granted');
+      print(' [PERMISSION] Photo library already granted');
       return true;
     }
 
     // If denied permanently
     if (status.isPermanentlyDenied) {
-      print('⚠️ [PERMISSION] Photo library permanently denied');
+      print('️ [PERMISSION] Photo library permanently denied');
       _showSettingsDialog(
         context,
         title: 'Quyền truy cập thư viện ảnh',
@@ -30,14 +30,14 @@ class PermissionHelper {
     }
 
     // Request permission
-    print('🔵 [PERMISSION] Requesting photo library permission...');
+    print('[PERMISSION] Requesting photo library permission...');
     status = await Permission.photos.request();
 
     if (status.isGranted) {
-      print('✅ [PERMISSION] Photo library granted');
+      print(' [PERMISSION] Photo library granted');
       return true;
     } else if (status.isDenied) {
-      print('❌ [PERMISSION] Photo library denied');
+      print(' [PERMISSION] Photo library denied');
       _showPermissionDeniedDialog(
         context,
         title: 'Quyền bị từ chối',
@@ -45,7 +45,7 @@ class PermissionHelper {
       );
       return false;
     } else if (status.isPermanentlyDenied) {
-      print('❌ [PERMISSION] Photo library permanently denied');
+      print(' [PERMISSION] Photo library permanently denied');
       _showSettingsDialog(
         context,
         title: 'Quyền truy cập thư viện ảnh',
@@ -60,17 +60,17 @@ class PermissionHelper {
   // ==================== CHECK & REQUEST CAMERA ====================
 
   static Future<bool> requestCameraPermission(BuildContext context) async {
-    print('🔵 [PERMISSION] Checking camera permission...');
+    print(' [PERMISSION] Checking camera permission...');
 
     PermissionStatus status = await Permission.camera.status;
 
     if (status.isGranted) {
-      print('✅ [PERMISSION] Camera already granted');
+      print(' [PERMISSION] Camera already granted');
       return true;
     }
 
     if (status.isPermanentlyDenied) {
-      print('⚠️ [PERMISSION] Camera permanently denied');
+      print(' [PERMISSION] Camera permanently denied');
       _showSettingsDialog(
         context,
         title: 'Quyền truy cập camera',
@@ -79,11 +79,11 @@ class PermissionHelper {
       return false;
     }
 
-    print('🔵 [PERMISSION] Requesting camera permission...');
+    print('[PERMISSION] Requesting camera permission...');
     status = await Permission.camera.request();
 
     if (status.isGranted) {
-      print('✅ [PERMISSION] Camera granted');
+      print(' [PERMISSION] Camera granted');
       return true;
     } else if (status.isPermanentlyDenied) {
       _showSettingsDialog(
@@ -100,17 +100,17 @@ class PermissionHelper {
   // ==================== CHECK & REQUEST LOCATION ====================
 
   static Future<bool> requestLocationPermission(BuildContext context) async {
-    print('🔵 [PERMISSION] Checking location permission...');
+    print(' [PERMISSION] Checking location permission...');
 
     PermissionStatus status = await Permission.locationWhenInUse.status;
 
     if (status.isGranted) {
-      print('✅ [PERMISSION] Location already granted');
+      print(' [PERMISSION] Location already granted');
       return true;
     }
 
     if (status.isPermanentlyDenied) {
-      print('⚠️ [PERMISSION] Location permanently denied');
+      print('️ [PERMISSION] Location permanently denied');
       _showSettingsDialog(
         context,
         title: 'Quyền truy cập vị trí',
@@ -119,11 +119,11 @@ class PermissionHelper {
       return false;
     }
 
-    print('🔵 [PERMISSION] Requesting location permission...');
+    print(' [PERMISSION] Requesting location permission...');
     status = await Permission.locationWhenInUse.request();
 
     if (status.isGranted) {
-      print('✅ [PERMISSION] Location granted');
+      print(' [PERMISSION] Location granted');
       return true;
     } else if (status.isPermanentlyDenied) {
       _showSettingsDialog(

@@ -1,5 +1,3 @@
-// lib/viewmodels/owner_home/owner_home_viewmodel.dart
-
 import 'package:flutter/material.dart';
 import 'package:barbergofe/services/booking_service.dart';
 import 'package:barbergofe/services/time_slot_service.dart';
@@ -49,23 +47,23 @@ class OwnerHomeViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      print('🔄 Starting initialization...');
+      print(' Starting initialization...');
 
-      // ✅ 1. Lấy barberId từ owner
+      //  1. Lấy barberId từ owner
       _barberId = await _getBarberId();
-      print('✅ Barber ID: $_barberId');
+      print(' Barber ID: $_barberId');
 
-      // ✅ 2. Load data song song
+      //  2. Load data song song
       await Future.wait([
         _fetchTodayTimeSlots(_barberId!),
         _fetchTodayBookings(_barberId!),
       ]);
 
-      // ✅ 3. Tính toán stats
+      //  3. Tính toán stats
       _calculateStats();
       _findUpcomingBooking();
 
-      print('✅ Initialization complete');
+      print('Initialization complete');
       print('   - Time slots: ${_todayTimeSlots.length}');
       print('   - Bookings: ${_allBookings.length}');
       print('   - Total slots: $_totalSlots');
@@ -78,17 +76,17 @@ class OwnerHomeViewModel extends ChangeNotifier {
       _error = 'Lỗi tải dữ liệu: ${e.toString()}';
       _isLoading = false;
       notifyListeners();
-      print('❌ Error initializing: $e');
+      print(' Error initializing: $e');
     }
   }
 
-  /// ✅ SỬA: Fetch time slots hôm nay
+  ///  Fetch time slots hôm nay
   Future<void> _fetchTodayTimeSlots(String barberId) async {
     try {
       final today = DateTime.now();
       final dateStr = _formatDate(today);
 
-      print('🔍 Fetching time slots for barber: $barberId, date: $dateStr');
+      print('Fetching time slots for barber: $barberId, date: $dateStr');
 
       final response = await _timeSlotService.getTimeSlotsByBarber(
         barberId,
@@ -96,39 +94,38 @@ class OwnerHomeViewModel extends ChangeNotifier {
       );
 
       _todayTimeSlots = _timeSlotService.sortByTime(response.timeSlots);
-      print('✅ Loaded ${_todayTimeSlots.length} time slots');
+      print('Loaded ${_todayTimeSlots.length} time slots');
 
       // Debug: In ra từng slot
       for (var slot in _todayTimeSlots) {
         print('   Slot #${slot.id}: ${slot.startTime} - ${slot.endTime}, available: ${slot.isAvailable}');
       }
     } catch (e) {
-      print('❌ Error fetching time slots: $e');
+      print('Error fetching time slots: $e');
       rethrow;
     }
   }
 
-  /// ✅ SỬA: Fetch bookings của BARBER hôm nay (không phải user)
+  ///  Fetch bookings của BARBER hôm nay (không phải user)
   Future<void> _fetchTodayBookings(String barberId) async {
     try {
-      print('🔍 Fetching bookings for barber: $barberId');
+      print(' Fetching bookings for barber: $barberId');
 
-      // ✅ QUAN TRỌNG: Dùng getBarberBookings thay vì getUserBookings
       final response = await _bookingService.getBarberBookings(barberId);
 
-      print('📦 Raw bookings count: ${response.bookings.length}');
+      print(' Raw bookings count: ${response.bookings.length}');
 
-      // ✅ Filter bookings hôm nay
+      // Filter bookings hôm nay
       final today = DateTime.now();
       _allBookings = response.bookings.where((booking) {
         if (booking.timeSlots == null) {
-          print('⚠️ Booking #${booking.id} has no time_slots');
+          print(' Booking #${booking.id} has no time_slots');
           return false;
         }
 
         final slotDateStr = booking.timeSlots!['slot_date']?.toString();
         if (slotDateStr == null) {
-          print('⚠️ Booking #${booking.id} has no slot_date');
+          print('Booking #${booking.id} has no slot_date');
           return false;
         }
 
@@ -139,33 +136,33 @@ class OwnerHomeViewModel extends ChangeNotifier {
               slotDate.day == today.day;
 
           if (isToday) {
-            print('✅ Booking #${booking.id} is today: ${booking.status}');
+            print(' Booking #${booking.id} is today: ${booking.status}');
           }
 
           return isToday;
         } catch (e) {
-          print('❌ Error parsing date for booking #${booking.id}: $e');
+          print(' Error parsing date for booking #${booking.id}: $e');
           return false;
         }
       }).toList();
 
-      print('✅ Filtered ${_allBookings.length} bookings for today');
+      print('Filtered ${_allBookings.length} bookings for today');
 
       // Debug: In ra từng booking
       for (var booking in _allBookings) {
         print('   Booking #${booking.id}: status=${booking.status}, slot_id=${booking.timeSlotId}');
       }
     } catch (e) {
-      print('❌ Error fetching bookings: $e');
+      print('Error fetching bookings: $e');
       rethrow;
     }
   }
 
-  /// ✅ SỬA: Calculate statistics
+  /// Calculate statistics
   void _calculateStats() {
     _totalSlots = _todayTimeSlots.length;
 
-    // ✅ Đếm slots đã đặt dựa trên bookings
+    //  Đếm slots đã đặt dựa trên bookings
     _bookedSlots = 0;
     for (var slot in _todayTimeSlots) {
       // Tìm booking cho slot này
@@ -181,18 +178,18 @@ class OwnerHomeViewModel extends ChangeNotifier {
 
     _availableSlots = _totalSlots - _bookedSlots;
 
-    print('📊 Stats calculated:');
+    print('Stats calculated:');
     print('   Total: $_totalSlots');
     print('   Booked: $_bookedSlots');
     print('   Available: $_availableSlots');
     print('   Percentage: ${bookingPercentage.toStringAsFixed(1)}%');
   }
 
-  /// ✅ SỬA: Find upcoming booking
+  /// Find upcoming booking
   void _findUpcomingBooking() {
     final now = DateTime.now();
 
-    print('🔍 Finding upcoming booking...');
+    print(' Finding upcoming booking...');
 
     // Lọc bookings confirmed
     final confirmedBookings = _allBookings
@@ -222,41 +219,30 @@ class OwnerHomeViewModel extends ChangeNotifier {
 
       if (startTime.isAfter(now)) {
         _upcomingBooking = booking;
-        print('✅ Upcoming booking found: #${booking.id}');
+        print(' Upcoming booking found: #${booking.id}');
         return;
       }
     }
 
     // Nếu không có booking nào sau giờ hiện tại, lấy booking đầu tiên
     _upcomingBooking = confirmedBookings.first;
-    print('✅ Using first booking as upcoming: #${_upcomingBooking!.id}');
-  }
-
-  /// Toggle store status
-  Future<void> toggleStoreStatus() async {
-    _isStoreOpen = !_isStoreOpen;
-    notifyListeners();
-
-    print('${_isStoreOpen ? "🟢 Store OPENED" : "🔴 Store CLOSED"}');
-
-    // TODO: Call API to update store status
-    // await _barberService.updateBarberStatus(_barberId!, _isStoreOpen);
+    print(' Using first booking as upcoming: #${_upcomingBooking!.id}');
   }
 
   /// Check-in customer
   Future<void> checkInCustomer(int bookingId) async {
     try {
-      print('🔄 Checking in booking #$bookingId');
+      print(' Checking in booking #$bookingId');
 
       await _bookingService.updateBookingStatus(
-        bookingId.toString(),
-        'in_progress',
+        bookingId,
+        'completed',
       );
 
-      print('✅ Customer checked in');
+      print(' Customer checked in');
       await initialize(); // Refresh data
     } catch (e) {
-      print('❌ Error checking in: $e');
+      print(' Error checking in: $e');
       rethrow;
     }
   }
@@ -264,21 +250,32 @@ class OwnerHomeViewModel extends ChangeNotifier {
   /// Complete booking
   Future<void> completeBooking(int bookingId) async {
     try {
-      print('🔄 Completing booking #$bookingId');
+      print(' Completing booking #$bookingId');
 
       await _bookingService.updateBookingStatus(
-        bookingId.toString(),
+        bookingId,
         'completed',
       );
 
-      print('✅ Booking completed');
+      print(' Booking completed');
       await initialize(); // Refresh data
     } catch (e) {
-      print('❌ Error completing booking: $e');
+      print(' Error completing booking: $e');
       rethrow;
     }
   }
 
+  Future<void> boomBooking(int bookingId) async {
+    try {
+      print(' boom booking #$bookingId');
+
+      await _bookingService.boomBooking(bookingId);
+      await initialize(); // Refresh data
+    } catch (e) {
+      print(' Error boom booking: $e');
+      rethrow;
+    }
+  }
   /// Refresh all data
   Future<void> refresh() async {
     await initialize();
@@ -286,7 +283,7 @@ class OwnerHomeViewModel extends ChangeNotifier {
 
   // ==================== HELPER METHODS ====================
 
-  /// ✅ SỬA: Lấy barberId từ user hiện tại
+  ///  Lấy barberId từ user hiện tại
   Future<String> _getBarberId() async {
     try {
       final userId = await AuthStorage.getUserId();
@@ -294,7 +291,7 @@ class OwnerHomeViewModel extends ChangeNotifier {
         throw Exception('User not logged in');
       }
 
-      // ✅ Lấy barber của owner này
+      // Lấy barber của owner này
       final barber = await _barberService.getBarberByOwnerId(userId);
 
       if (barber == null) {
@@ -303,7 +300,7 @@ class OwnerHomeViewModel extends ChangeNotifier {
 
       return barber.barbers.first.id.toString();
     } catch (e) {
-      print('❌ Error getting barber ID: $e');
+      print(' Error getting barber ID: $e');
       rethrow;
     }
   }
@@ -339,7 +336,7 @@ class OwnerHomeViewModel extends ChangeNotifier {
     return startTime.difference(now).inMinutes;
   }
 
-  /// ✅ SỬA: Get schedule item status
+  ///  Get schedule item status
   String getScheduleItemStatus(TimeSlotModel timeSlot) {
     // Tìm booking cho slot này
     final booking = _allBookings.firstWhere(

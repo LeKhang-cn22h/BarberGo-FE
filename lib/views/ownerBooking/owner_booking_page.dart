@@ -31,7 +31,7 @@ class _OwnerBookingPageState extends State<OwnerBookingPage> {
     final barberViewModel = context.read<OwnerBarberViewModel>();
 
     if (barberViewModel.myBarber == null) {
-      print('⚠️ No barber found');
+      print('No barber found');
       return;
     }
 
@@ -78,7 +78,7 @@ class _OwnerBookingPageState extends State<OwnerBookingPage> {
               ],
             ),
             actions: [
-              // ✅ THÊM: Menu với nhiều options
+              //  Menu với nhiều options
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert),
                 onSelected: (value) {
@@ -376,7 +376,7 @@ class _OwnerBookingPageState extends State<OwnerBookingPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              success ? '✅ Đã tạo khung giờ mới' : '❌ Tạo thất bại',
+              success ? ' Đã tạo khung giờ mới' : ' Tạo thất bại ${viewModel.error}',
             ),
             backgroundColor: success ? Colors.green : Colors.red,
           ),
@@ -385,7 +385,7 @@ class _OwnerBookingPageState extends State<OwnerBookingPage> {
     }
   }
 
-  // ✅ THÊM: Bulk create dialog
+  //  Bulk create dialog
   Future<void> _showBulkCreateDialog(String barberId) async {
     final viewModel = context.read<TimeSlotViewModel>();
 
@@ -405,8 +405,8 @@ class _OwnerBookingPageState extends State<OwnerBookingPage> {
           SnackBar(
             content: Text(
               success
-                  ? '✅ Đã tạo ${request.timeRanges.length} khung giờ'
-                  : '❌ Tạo thất bại',
+                  ? ' Đã tạo ${request.timeRanges.length} khung giờ'
+                  : ' Tạo thất bại ${viewModel.error} không hợp lệ',
             ),
             backgroundColor: success ? Colors.green : Colors.red,
             duration: const Duration(seconds: 3),
@@ -416,7 +416,7 @@ class _OwnerBookingPageState extends State<OwnerBookingPage> {
     }
   }
 
-  // ✅ THÊM: Clone dialog
+  // Clone dialog
   Future<void> _showCloneDialog(String barberId) async {
     final viewModel = context.read<TimeSlotViewModel>();
 
@@ -436,8 +436,8 @@ class _OwnerBookingPageState extends State<OwnerBookingPage> {
           SnackBar(
             content: Text(
               success
-                  ? '✅ Đã sao chép ${request.timeRanges.length} khung giờ'
-                  : '❌ Sao chép thất bại',
+                  ? ' Đã sao chép ${request.timeRanges.length} khung giờ'
+                  : ' ${viewModel.error ?? "Sao chép thất bại"}',
             ),
             backgroundColor: success ? Colors.green : Colors.red,
             duration: const Duration(seconds: 3),
@@ -482,7 +482,7 @@ class _OwnerBookingPageState extends State<OwnerBookingPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            success ? '✅ Đã cập nhật khung giờ' : '❌ Cập nhật thất bại',
+            success ? 'Đã cập nhật khung giờ' : 'Cập nhật thất bại',
           ),
           backgroundColor: success ? Colors.green : Colors.red,
         ),
@@ -507,7 +507,7 @@ class _OwnerBookingPageState extends State<OwnerBookingPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            success ? '✅ Đã xóa khung giờ' : '❌ Xóa thất bại (có thể đã có booking)',
+            success ? 'Đã xóa khung giờ' : 'Xóa thất bại (có thể đã có booking)',
           ),
           backgroundColor: success ? Colors.green : Colors.red,
         ),
@@ -525,8 +525,8 @@ class _OwnerBookingPageState extends State<OwnerBookingPage> {
         SnackBar(
           content: Text(
             success
-                ? '✅ Đã ${newStatus ? "mở" : "đóng"} khung giờ'
-                : '❌ Thay đổi thất bại',
+                ? 'Đã ${newStatus ? "mở" : "đóng"} khung giờ'
+                : ' Thay đổi thất bại',
           ),
           backgroundColor: success ? Colors.green : Colors.red,
         ),

@@ -1,5 +1,3 @@
-// lib/views/ownerHistory/widgets/booking_filter_chips.dart
-
 import 'package:flutter/material.dart';
 
 class BookingFilterChips extends StatelessWidget {

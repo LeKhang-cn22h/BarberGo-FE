@@ -1,4 +1,3 @@
-// lib/pages/user_ratings/widgets/rating_card.dart
 import 'package:flutter/material.dart';
 import 'package:barbergofe/models/rating/rating_model.dart';
 import 'info_row.dart';

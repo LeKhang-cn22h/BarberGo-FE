@@ -1,6 +1,6 @@
-  // lib/views/ownerBarber/owner_barber_page.dart (WITH DEBUG LOGS)
-
-  import 'package:flutter/material.dart';
+  import 'package:barbergofe/core/globals.dart';
+import 'package:barbergofe/core/utils/image_picker_helper.dart';
+import 'package:flutter/material.dart';
   import 'package:provider/provider.dart';
   import 'package:go_router/go_router.dart';
   import 'package:barbergofe/viewmodels/barber/owner_barber_viewmodel.dart';
@@ -191,23 +191,23 @@
         OwnerBarberViewModel viewModel,
         String currentName,
         ) async {
-      print('🔵 [VIEW] Current name: "$currentName"');
+      print(' [VIEW] Current name: "$currentName"');
 
       final newName = await showDialog<String>(
         context: context,
         builder: (context) => EditBarberNameDialog(currentName: currentName),
       );
 
-      print('🔵 [VIEW] Dialog returned: "$newName"');
+      print(' [VIEW] Dialog returned: "$newName"');
 
       if (newName != null && newName.isNotEmpty && newName != currentName) {
-        print('🔵 [VIEW] Creating request with name: "$newName"');
+        print(' [VIEW] Creating request with name: "$newName"');
 
         // Tạo request với tên mới
         final request = BarberUpdateRequest(name: newName);
 
         // Debug: In ra để xem request có đúng không
-        print('🔵 [VIEW] Request created - checking request.name: "${request.name}"');
+        print('[VIEW] Request created - checking request.name: "${request.name}"');
 
         final success = await viewModel.updateinforBarber(request);
 
@@ -215,14 +215,14 @@
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                success ? '✅ Đã cập nhật tên thành "$newName"' : '❌ Cập nhật thất bại',
+                success ? ' Đã cập nhật tên thành "$newName"' : ' Cập nhật thất bại',
               ),
               backgroundColor: success ? Colors.green : Colors.red,
             ),
           );
         }
       } else {
-        print('🔵 [VIEW] Update cancelled or same name');
+        print('[VIEW] Update cancelled or same name');
       }
     }
 
@@ -250,7 +250,7 @@
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('✅ Đã cập nhật vị trí'),
+                  content: Text(' Đã cập nhật vị trí'),
                   backgroundColor: Colors.green,
                 ),
               );
@@ -259,7 +259,7 @@
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('❌ Cập nhật thất bại: $e'),
+                  content: Text(' Cập nhật thất bại: $e'),
                   backgroundColor: Colors.red,
                 ),
               );
@@ -269,10 +269,63 @@
       }
     }
 
-    void _handleEditImage(OwnerBarberViewModel viewModel) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Chức năng đang phát triển')),
-      );
+    Future<void> _handleEditImage(OwnerBarberViewModel viewModel) async {
+      final imageFile = await ImagePickerHelper.pickFromGallery(context);
+
+      if (imageFile != null) {
+        // Show loading dialog với GlobalKey
+        AppGlobals.scaffoldMessengerKey.currentState?.showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(width: 16),
+                Text('Đang tải ảnh lên...'),
+              ],
+            ),
+            duration: Duration(seconds: 30),
+          ),
+        );
+
+        try {
+          final success = await viewModel.uploadBarberImage(imageFile);
+
+          AppGlobals.scaffoldMessengerKey.currentState?.hideCurrentSnackBar();
+
+          if (mounted) {
+            AppGlobals.scaffoldMessengerKey.currentState?.showSnackBar(
+              SnackBar(
+                content: Text(
+                  success
+                      ? 'Đã cập nhật ảnh đại diện'
+                      : 'Cập nhật ảnh thất bại',
+                ),
+                backgroundColor: success ? Colors.green : Colors.red,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        } catch (e) {
+          AppGlobals.scaffoldMessengerKey.currentState?.hideCurrentSnackBar();
+
+          if (mounted) {
+            AppGlobals.scaffoldMessengerKey.currentState?.showSnackBar(
+              SnackBar(
+                content: Text(' Lỗi: $e'),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        }
+      }
     }
 
     Future<void> _handleAddService(OwnerBarberViewModel viewModel) async {
@@ -298,7 +351,7 @@
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                success ? '✅ Đã thêm dịch vụ' : '❌ Thêm thất bại',
+                success ? ' Đã thêm dịch vụ' : ' Thêm thất bại',
               ),
               backgroundColor: success ? Colors.green : Colors.red,
             ),
@@ -322,13 +375,13 @@
         if (action == 'delete') {
           final confirmDelete = await _confirmDelete(service.serviceName);
           if (confirmDelete == true) {
-            final success = await viewModel.deleteService(service.id as String);
+            final success = await viewModel.deleteService(service.id.toString());
 
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    success ? '✅ Đã xóa dịch vụ' : '❌ Xóa thất bại',
+                    success ? ' Đã xóa dịch vụ' : ' Xóa thất bại',
                   ),
                   backgroundColor: success ? Colors.green : Colors.red,
                 ),
@@ -342,13 +395,13 @@
             durationMin: result['durationMin'] as int?,
           );
 
-          final success = await viewModel.updateService(service.id as String, request);
+          final success = await viewModel.updateService(service.id, request);
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  success ? '✅ Đã cập nhật dịch vụ' : '❌ Cập nhật thất bại',
+                  success ? ' Đã cập nhật dịch vụ' : ' Cập nhật thất bại',
                 ),
                 backgroundColor: success ? Colors.green : Colors.red,
               ),

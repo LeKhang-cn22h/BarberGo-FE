@@ -1,13 +1,10 @@
-// lib/pages/user_ratings/user_ratings_page.dart
-import 'package:barbergofe/views/rating/Widgets/rating_card.dart' hide RatingCard;
-import 'package:barbergofe/views/rating/Widgets/update_rating_dialog.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
-import 'package:barbergofe/viewmodels/rating/rating_viewmodel.dart';
 import 'package:barbergofe/models/rating/rating_model.dart';
-import 'package:barbergofe/core/utils/auth_storage.dart';
-import 'Widgets/rating_card.dart';
+import 'package:barbergofe/viewmodels/rating/rating_viewmodel.dart';
+import 'package:barbergofe/views/rating/handlers/rating_page_handler.dart';
+import 'package:barbergofe/views/rating/widgets/rating_card.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class UserRatingsPage extends StatefulWidget {
   const UserRatingsPage({super.key});
@@ -18,27 +15,23 @@ class UserRatingsPage extends StatefulWidget {
 
 class _UserRatingsPageState extends State<UserRatingsPage> {
   final Set<int> _expandedIds = {};
+  late RatingPageHandler _handler;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initHandler();
+      _handler.loadUserRatings();
+    });
   }
 
-  Future<void> _loadData() async {
-    final userId = await AuthStorage.getUserId();
-    if (userId == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Vui lòng đăng nhập')),
-        );
-        context.goNamed('login');
-      }
-      return;
-    }
-
-    final ratingViewModel = context.read<RatingViewModel>();
-    await ratingViewModel.fetchUserRatings(userId);
+  void _initHandler() {
+    final viewModel = context.read<RatingViewModel>();
+    _handler = RatingPageHandler(
+      context: context,
+      viewModel: viewModel,
+    );
   }
 
   void _toggleExpanded(int ratingId) {
@@ -49,94 +42,6 @@ class _UserRatingsPageState extends State<UserRatingsPage> {
         _expandedIds.add(ratingId);
       }
     });
-  }
-
-  Future<void> _showUpdateDialog(RatingWithBarber rating) async {
-    final result = await showDialog<UpdateRatingResult>(
-      context: context,
-      builder: (context) => UpdateRatingDialog(rating: rating),
-    );
-
-    if (result != null && mounted) {
-      if (result.action == UpdateRatingAction.delete) {
-        await _deleteRating(rating);
-      } else if (result.action == UpdateRatingAction.update) {
-        await _updateRating(rating, result.newScore!);
-      }
-    }
-  }
-
-  Future<void> _updateRating(RatingWithBarber rating, double newScore) async {
-    final ratingViewModel = context.read<RatingViewModel>();
-    final success = await ratingViewModel.updateRating(
-      rating.id,
-      newScore,
-      rating.barberId ?? '',
-      rating.userId ?? ''
-    );
-
-    if (mounted) {
-      _showSnackBar(
-        success ? ' Cập nhật thành công' : ' ${ratingViewModel.error}',
-        success,
-      );
-
-      if (success) await _loadData();
-    }
-  }
-
-  Future<void> _deleteRating(RatingWithBarber rating) async {
-    final confirmed = await _showDeleteConfirmation(rating);
-
-    if (confirmed == true && mounted) {
-      final ratingViewModel = context.read<RatingViewModel>();
-      final success = await ratingViewModel.deleteRating(
-        rating.id,
-        rating.barberId ?? '',
-        rating.userId ?? ''
-      );
-
-      if (mounted) {
-        _showSnackBar(
-          success ? ' Đã xóa đánh giá' : ' ${ratingViewModel.error}',
-          success,
-        );
-
-        if (success) await _loadData();
-      }
-    }
-  }
-
-  Future<bool?> _showDeleteConfirmation(RatingWithBarber rating) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Xác nhận xóa'),
-        content: Text(
-          'Bạn có chắc muốn xóa đánh giá cho ${rating.barber?.name ?? "barber này"}?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Hủy'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Xóa'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showSnackBar(String message, bool isSuccess) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isSuccess ? Colors.green : Colors.red,
-      ),
-    );
   }
 
   @override
@@ -169,6 +74,8 @@ class _UserRatingsPageState extends State<UserRatingsPage> {
     );
   }
 
+  // ==================== UI STATES ====================
+
   Widget _buildLoadingState() {
     return const Center(
       child: Column(
@@ -189,11 +96,16 @@ class _UserRatingsPageState extends State<UserRatingsPage> {
         children: [
           const Icon(Icons.error_outline, size: 60, color: Colors.red),
           const SizedBox(height: 16),
-          Text(error),
+          Text(
+            error,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 16),
+          ),
           const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _loadData,
-            child: const Text('Thử lại'),
+          ElevatedButton.icon(
+            onPressed: () => _handler.loadUserRatings(),
+            icon: const Icon(Icons.refresh),
+            label: const Text('Thử lại'),
           ),
         ],
       ),
@@ -213,7 +125,7 @@ class _UserRatingsPageState extends State<UserRatingsPage> {
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
-            onPressed: () => context.goNamed('home'),
+            onPressed: _handler.navigateToHome,
             icon: const Icon(Icons.search),
             label: const Text('Tìm cửa hàng'),
           ),
@@ -224,7 +136,7 @@ class _UserRatingsPageState extends State<UserRatingsPage> {
 
   Widget _buildSuccessState(List<RatingWithBarber> ratings) {
     return RefreshIndicator(
-      onRefresh: _loadData,
+      onRefresh: () => _handler.loadUserRatings(),
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: ratings.length,
@@ -236,12 +148,10 @@ class _UserRatingsPageState extends State<UserRatingsPage> {
             rating: rating,
             isExpanded: isExpanded,
             onTap: () => _toggleExpanded(rating.id),
-            onUpdate: () => _showUpdateDialog(rating),
+            onUpdate: () => _handler.handleUpdateRating(rating),
             onNavigate: () {
               if (rating.barberId != null) {
-                context.pushNamed('detail_shop', pathParameters: {
-                  'id': rating.barberId!,
-                });
+                _handler.navigateToBarberDetail(rating.barberId!);
               }
             },
           );

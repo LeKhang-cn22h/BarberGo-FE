@@ -1,3 +1,4 @@
+import 'package:barbergofe/core/globals.dart';
 import 'package:barbergofe/core/theme/app_theme.dart';
 import 'package:barbergofe/routes/app_router.dart';
 import 'package:barbergofe/services/google_auth_service.dart';
@@ -20,6 +21,7 @@ import 'package:barbergofe/core/constants/app_strings.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+
 final supabase = Supabase.instance.client;
 class MyApp extends StatelessWidget {
   final GoogleAuthService googleAuthService;
@@ -28,7 +30,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return // main.dart - CÁCH ĐƠN GIẢN NHẤT
+    return
 
       MultiProvider(
         providers: [
@@ -57,6 +59,7 @@ class MyApp extends StatelessWidget {
         ],
         child: MaterialApp.router(
           title: CommonStrings.appName,
+          scaffoldMessengerKey: AppGlobals.scaffoldMessengerKey,
           debugShowCheckedModeBanner: false,
           routerConfig: AppRouter.router,
           theme: AppTheme.lightTheme,

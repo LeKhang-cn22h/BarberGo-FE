@@ -46,11 +46,11 @@ class OwnerBookingHistoryViewModel extends ChangeNotifier {
       final response = await _bookingService.getBarberBookings(barberId);
       _allBookings = _bookingService.sortByDate(response.bookings);
       _applyFilter(_selectedFilter);
-      print('✅ Fetched barber bookings: ${_allBookings.length}');
+      print(' Fetched barber bookings: ${_allBookings.length}');
       notifyListeners();
     } catch (e) {
       _error = e.toString();
-      print('❌ Error fetching barber bookings: $e');
+      print(' Error fetching barber bookings: $e');
       notifyListeners();
       rethrow;
     } finally {
@@ -108,7 +108,7 @@ class OwnerBookingHistoryViewModel extends ChangeNotifier {
 
   // ==================== BOOKING ACTIONS ====================
 
-  Future<bool> updateBookingStatus(String bookingId, String status) async {
+  Future<bool> updateBookingStatus(int bookingId, String status) async {
     _setLoading(true);
     _error = null;
 
@@ -122,6 +122,24 @@ class OwnerBookingHistoryViewModel extends ChangeNotifier {
         _applyFilter(_selectedFilter);
       }
 
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<bool> boomBookingStatus( int bookingId) async {
+    _setLoading(true);
+    _error = null;
+
+    try {
+      final response = await _bookingService.boomBooking(bookingId);
+      print(response);
       notifyListeners();
       return true;
     } catch (e) {

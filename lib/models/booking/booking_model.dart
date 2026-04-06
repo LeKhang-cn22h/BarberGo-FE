@@ -11,9 +11,8 @@ class BookingModel {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
-  // ⚠️ SỬA: Nested objects - KHỚP VỚI API
   final Map<String, dynamic>? user;
-  final Map<String, dynamic>? timeSlots;  // ← SỬA: time_slots (có s)
+  final Map<String, dynamic>? timeSlots;
   final List<Map<String, dynamic>>? services;
 
   BookingModel({
@@ -26,7 +25,7 @@ class BookingModel {
     this.createdAt,
     this.updatedAt,
     this.user,
-    this.timeSlots,  // ← SỬA
+    this.timeSlots,
     this.services,
   });
 
@@ -135,7 +134,6 @@ class BookingModel {
     return 'Chưa xác định';
   }
 
-  // ⚠️ SỬA: Lấy barber ID
   String? get barberId {
     if (timeSlots != null && timeSlots!['barbers'] is Map) {
       return timeSlots!['barbers']['id']?.toString();
@@ -143,7 +141,6 @@ class BookingModel {
     return null;
   }
 
-  // ⚠️ SỬA: Lấy barber address
   String get barberAddress {
     if (timeSlots != null && timeSlots!['barbers'] is Map) {
       return timeSlots!['barbers']['address']?.toString() ?? '';
@@ -200,12 +197,50 @@ class BookingModel {
       case 'cancelled':
         return Icons.cancel;
       default:
-        return Icons.pending;
+        return Icons.help;
     }
   }
 
   bool get canCancel {
-    return status.toLowerCase() == 'confirmed';
+    // Chỉ cho hủy khi status là confirmed
+    if (status.toLowerCase() != 'confirmed') {
+      return false;
+    }
+
+    // Kiểm tra thời gian: phải hủy trước ít nhất 1 giờ
+    if (timeSlots != null) {
+      try {
+        final slotDate = timeSlots!['slot_date'] as String?;
+        final startTime = timeSlots!['start_time'] as String?;
+
+        if (slotDate != null && startTime != null) {
+          final date = DateTime.parse(slotDate);
+          final timeParts = startTime.split(':');
+
+          final slotDateTime = DateTime(
+            date.year,
+            date.month,
+            date.day,
+            int.parse(timeParts[0]),
+            int.parse(timeParts[1]),
+          );
+
+          // Phải hủy trước ít nhất 1 giờ
+          final now = DateTime.now();
+          final cancelDeadline = slotDateTime.subtract(const Duration(hours: 1));
+
+          // Nếu đã quá deadline → không cho hủy
+          if (now.isAfter(cancelDeadline)) {
+            return false;
+          }
+        }
+      } catch (e) {
+        print(' Error checking canCancel: $e');
+        return false;
+      }
+    }
+
+    return true;
   }
 
   BookingModel copyWith({
@@ -218,7 +253,7 @@ class BookingModel {
     DateTime? createdAt,
     DateTime? updatedAt,
     Map<String, dynamic>? user,
-    Map<String, dynamic>? timeSlots,  // ← SỬA
+    Map<String, dynamic>? timeSlots,
     List<Map<String, dynamic>>? services,
   }) {
     return BookingModel(
@@ -231,7 +266,7 @@ class BookingModel {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       user: user ?? this.user,
-      timeSlots: timeSlots ?? this.timeSlots,  // ← SỬA
+      timeSlots: timeSlots ?? this.timeSlots,
       services: services ?? this.services,
     );
   }

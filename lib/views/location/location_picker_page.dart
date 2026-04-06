@@ -81,7 +81,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
       _mapController.move(_selectedLocation, 15.0);
       _updateAddress();
     } catch (e) {
-      print('❌ Error getting location: $e');
+      print(' Error getting location: $e');
       setState(() => _isLoading = false);
       _showError('Không thể lấy vị trí hiện tại');
     }
@@ -99,7 +99,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
         _isLoading = false;
       });
     } catch (e) {
-      print('❌ Error getting address: $e');
+      print(' Error getting address: $e');
       setState(() => _isLoading = false);
     }
   }
@@ -130,7 +130,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
         setState(() => _isLoading = false);
       }
     } catch (e) {
-      print('❌ Search error: $e');
+      print(' Search error: $e');
       setState(() => _isLoading = false);
       _showError('Lỗi tìm kiếm');
     }

@@ -23,4 +23,8 @@ class BookingEmdpoint{
   /// PATCH /bookings/{booking_id}/cancel - Hủy booking
   static const String bookingCancel = "/bookings";
   static const String bookingCancelAction = "cancel";
+// patch /bookings/{booking_id}/boom
+  static const String boomBooking ="/bookings";
+  static const String bookingBoomAction = "boom";
+
 }

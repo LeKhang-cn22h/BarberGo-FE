@@ -40,6 +40,22 @@ class BarberService {
     }
   }
 
+  Future<BarberUpdateResponse> uploadBarberImage({
+    required String barberId,
+    required File imageFile,
+  }) async {
+    try {
+      print(' [SERVICE] Uploading image for barber: $barberId');
+      return await _barberApi.uploadBarberImage(
+        barberId: barberId,
+        imageFile: imageFile,
+      );
+    } catch (e) {
+      print(' [SERVICE] Upload error: $e');
+      rethrow;
+    }
+  }
+
   Future<GetAllBarbersResponse> getBarbersByArea(String area) async {
     try {
       return await _barberApi.getBarbersByArea(area);

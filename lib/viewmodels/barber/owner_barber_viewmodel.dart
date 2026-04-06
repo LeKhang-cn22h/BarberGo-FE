@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:barbergofe/core/utils/auth_storage.dart';
 import 'package:barbergofe/models/barber/barber_model.dart';
 import 'package:barbergofe/models/service/service_model.dart';
@@ -90,6 +92,37 @@ Future<bool> updateinforBarber(BarberUpdateRequest req) async{
       return false;
   }
 }
+
+  Future<bool> uploadBarberImage(File imageFile) async {
+    if (_myBarber == null) return false;
+
+    try {
+      setLoad(true);
+      print('[VM] Uploading image for barber: ${_myBarber!.id}');
+
+      final response = await _barberService.uploadBarberImage(
+        barberId: _myBarber!.id,
+        imageFile: imageFile,
+      );
+
+      if (response.success && response.barber != null) {
+        _myBarber = response.barber;
+        print('[VM] Image uploaded successfully');
+        print('[VM] New image URL: ${_myBarber!.imagePath}');
+        setLoad(false);
+        notifyListeners();
+        return true;
+      }
+
+      setLoad(false);
+      return false;
+    } catch (e) {
+      _error = e.toString();
+      setLoad(false);
+      print(' [VM] Upload error: $e');
+      return false;
+    }
+  }
   Future<void> updateBarberLocation( double lat, double lng){
     setLoad(true);
     _error=null;
@@ -116,21 +149,18 @@ Future<bool> updateinforBarber(BarberUpdateRequest req) async{
       setLoad(false);
       return true;
     }
-    setLoad(false);
-    return false;
   }catch(e){
+    setLoad(false);
     _error=e.toString();
     return false;
 
   }
   }
-  Future<bool> updateService(String serviceId, ServiceUpdateRequest req) async {
+  Future<bool> updateService(int serviceId, ServiceUpdateRequest req) async {
     if (_myBarber == null) return false;
 
     try {
-      _isLoading = true;
-      notifyListeners();
-
+      setLoad(true);
       final response = await _serviceService.updateService(serviceId, req);
 
       if (response.service != null) {
@@ -138,18 +168,12 @@ Future<bool> updateinforBarber(BarberUpdateRequest req) async{
         await fetchServices(_myBarber!.id);
 
         print(' Service updated');
-        _isLoading = false;
-        notifyListeners();
+        setLoad(false);
         return true;
       }
-
-      _isLoading = false;
-      notifyListeners();
-      return false;
     } catch (e) {
       _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
+      setLoad(false);
       print(' Update service error: $e');
       return false;
     }
@@ -158,22 +182,17 @@ Future<bool> updateinforBarber(BarberUpdateRequest req) async{
     if (_myBarber == null) return false;
 
     try {
-      _isLoading = true;
-      notifyListeners();
-
+      setLoad(true);
       await _serviceService.deleteService(serviceId);
 
       // Reload services
       await fetchServices(_myBarber!.id);
 
-      print('✅ Service deleted');
-      _isLoading = false;
-      notifyListeners();
+      setLoad(false);
       return true;
     } catch (e) {
       _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
+      setLoad(false);
       print(' Delete service error: $e');
       return false;
     }

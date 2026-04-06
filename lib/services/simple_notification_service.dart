@@ -2,7 +2,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz;
-import 'dart:typed_data'; // ✅ THÊM DÒNG NÀY
+import 'dart:typed_data';
 
 class SimpleNotificationService {
   static final _notifications = FlutterLocalNotificationsPlugin();
@@ -19,7 +19,7 @@ class SimpleNotificationService {
 
     await _notifications.initialize(settings);
 
-    print('✅ Notification ready!');
+    print(' Notification ready!');
   }
 
   /// Thông báo trước giờ đặt lịch
@@ -35,14 +35,13 @@ class SimpleNotificationService {
 
     // Nếu đã qua thì bỏ qua
     if (notifyTime.isBefore(DateTime.now())) {
-      print('⚠️ Time passed, skip notification');
+      print('⚠Time passed, skip notification');
       return;
     }
 
     // Convert sang timezone
     final scheduledDate = tz.TZDateTime.from(notifyTime, tz.local);
 
-    // ✅ SỬA: Bỏ const vì có vibrationPattern
     final android = AndroidNotificationDetails(
       'booking_reminder',
       'Nhắc lịch đặt',
@@ -51,10 +50,10 @@ class SimpleNotificationService {
       priority: Priority.high,
       playSound: true,
       enableVibration: true,
-      vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]), // ✅ Int64List từ dart:typed_data
+      vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
     );
 
-    final details = NotificationDetails(android: android); // ✅ Bỏ const
+    final details = NotificationDetails(android: android);
 
     // Lên lịch notification
     await _notifications.zonedSchedule(
@@ -66,13 +65,13 @@ class SimpleNotificationService {
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
 
-    print('✅ Scheduled notification #$id at $scheduledDate');
+    print('Scheduled notification #$id at $scheduledDate');
   }
 
   /// Hủy thông báo
   static Future<void> cancel(int id) async {
     await _notifications.cancel(id);
-    print('🗑️ Cancelled notification #$id');
+    print('Cancelled notification #$id');
   }
 
   /// Test thông báo ngay
@@ -88,7 +87,7 @@ class SimpleNotificationService {
 
     await _notifications.show(
       999,
-      '🧪 Test thông báo',
+      ' Test thông báo',
       'Nếu thấy được thì đã hoạt động!',
       const NotificationDetails(android: android),
     );

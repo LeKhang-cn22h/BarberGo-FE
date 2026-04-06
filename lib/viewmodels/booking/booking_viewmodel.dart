@@ -1,3 +1,4 @@
+import 'package:barbergofe/api/booking_api.dart';
 import 'package:barbergofe/services/simple_notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:barbergofe/models/barber/barber_model.dart';
@@ -196,18 +197,24 @@ class BookingViewModel extends ChangeNotifier {
           await SimpleNotificationService.scheduleReminder(
             id: response.booking.id,
             time: bookingTime,
-            title: '⏰ Nhắc lịch đặt',
+            title: ' Nhắc lịch đặt',
             message: 'Còn 30 phút nữa đến lịch của bạn tại ${_selectedBarber?.name ?? "barber"}',
             minutesBefore: 30,
           );
         }
       } catch (e) {
-        print('⚠️ Notification error: $e');
+        print(' Notification error: $e');
       }
 
       return response;
 
-    } catch (e) {
+    } on BookingException catch (e) {
+      // Lỗi từ business logic (validation backend)
+      print(' Booking error: ${e.message}');
+      _error = e.message;
+      notifyListeners();
+      rethrow;
+    }catch (e) {
       print(' Error creating booking: $e');
       _error = 'Không thể đặt lịch: ${e.toString()}';
       notifyListeners();
@@ -238,7 +245,7 @@ class BookingViewModel extends ChangeNotifier {
         'serviceIds': serviceIds,
       };
     } catch (e) {
-      print('❌ Error preparing rebook info: $e');
+      print('   Error preparing rebook info: $e');
       return null;
     }
   }
@@ -320,7 +327,7 @@ class BookingViewModel extends ChangeNotifier {
         }
       }
     } catch (e) {
-      print('❌ Parse time error: $e');
+      print('   Parse time error: $e');
     }
     return null;
   }

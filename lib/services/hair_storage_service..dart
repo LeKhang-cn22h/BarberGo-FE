@@ -1,4 +1,3 @@
-// lib/services/hair_storage_service.dart
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -16,7 +15,7 @@ class HairStorageService {
     required String styleName,
   }) async {
     try {
-      print('💈 [HAIR STORAGE] Starting save...');
+      print(' [HAIR STORAGE] Starting save...');
 
       // Lấy thư mục Documents
       final directory = await getApplicationDocumentsDirectory();
@@ -29,18 +28,18 @@ class HairStorageService {
 
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
 
-      // ✅ 1. LƯU ẢNH GỐC
+      //  1. LƯU ẢNH GỐC
       final originalPath = '${hairFolder.path}/original_$timestamp.jpg';
       await originalImage.copy(originalPath);
-      print('✅ [HAIR STORAGE] Saved original: $originalPath');
+      print(' [HAIR STORAGE] Saved original: $originalPath');
 
-      // ✅ 2. LƯU ẢNH KẾT QUẢ
+      //  2. LƯU ẢNH KẾT QUẢ
       final resultPath = '${hairFolder.path}/result_$timestamp.jpg';
       final resultFile = File(resultPath);
       await resultFile.writeAsBytes(resultImage);
-      print('✅ [HAIR STORAGE] Saved result: $resultPath');
+      print(' [HAIR STORAGE] Saved result: $resultPath');
 
-      // ✅ 3. LƯU METADATA JSON
+      //  3. LƯU METADATA JSON
       final metadataPath = '${hairFolder.path}/metadata_$timestamp.json';
       final metadata = {
         'timestamp': DateTime.now().toIso8601String(),
@@ -55,13 +54,13 @@ class HairStorageService {
         const JsonEncoder.withIndent('  ').convert(metadata),
       );
 
-      print('✅ [HAIR STORAGE] Saved metadata: $metadataPath');
+      print('[HAIR STORAGE] Saved metadata: $metadataPath');
       print('   Style: $styleName');
 
       return resultPath;
 
     } catch (e) {
-      print('❌ [HAIR STORAGE] Error saving: $e');
+      print('[HAIR STORAGE] Error saving: $e');
       rethrow;
     }
   }
@@ -108,18 +107,18 @@ class HairStorageService {
             results.add(data);
             print('   Loaded: ${data['style_name']}');
           } else {
-            print('⚠️  Missing files for: ${file.path}');
+            print('  Missing files for: ${file.path}');
           }
         } catch (e) {
-          print('⚠️  Error reading file: ${file.path} - $e');
+          print(' Error reading file: ${file.path} - $e');
         }
       }
 
-      print('✅ [HAIR STORAGE] Loaded ${results.length} results');
+      print('[HAIR STORAGE] Loaded ${results.length} results');
       return results;
 
     } catch (e) {
-      print('❌ [HAIR STORAGE] Error reading results: $e');
+      print(' [HAIR STORAGE] Error reading results: $e');
       return [];
     }
   }
@@ -129,7 +128,7 @@ class HairStorageService {
   /// Xóa một kết quả
   static Future<bool> deleteResult(Map<String, dynamic> result) async {
     try {
-      print('💈 [HAIR STORAGE] Deleting result...');
+      print(' [HAIR STORAGE] Deleting result...');
 
       // Xóa ảnh gốc
       final originalPath = result['original_path'] as String?;
@@ -152,11 +151,11 @@ class HairStorageService {
         print('   Deleted metadata: $metadataPath');
       }
 
-      print('✅ [HAIR STORAGE] Delete successful');
+      print(' [HAIR STORAGE] Delete successful');
       return true;
 
     } catch (e) {
-      print('❌ [HAIR STORAGE] Error deleting: $e');
+      print(' [HAIR STORAGE] Error deleting: $e');
       return false;
     }
   }
@@ -189,16 +188,16 @@ class HairStorageService {
             await deleteResult(data);
             deletedCount++;
           } catch (e) {
-            print('⚠️ Error deleting old file: ${file.path}');
+            print(' Error deleting old file: ${file.path}');
           }
         }
       }
 
-      print('✅ [HAIR STORAGE] Deleted $deletedCount old results');
+      print('[HAIR STORAGE] Deleted $deletedCount old results');
       return deletedCount;
 
     } catch (e) {
-      print('❌ [HAIR STORAGE] Error deleting old results: $e');
+      print('[HAIR STORAGE] Error deleting old results: $e');
       return 0;
     }
   }

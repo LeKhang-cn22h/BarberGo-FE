@@ -202,8 +202,21 @@
             return TimeSlotModel.fromJson(jsonResponse);
           }
         } else {
-          final error = json.decode(response.body);
-          throw Exception(error['message'] ?? 'Failed to toggle availability');
+          try{
+            final error = json.decode(response.body);
+
+            if(error is Map && error.containsKey('detail')){
+              throw TimeSlotException(error['detail']);
+            }
+            if(error is Map && error.containsKey('message')){
+              throw TimeSlotException(error['message']);
+            }
+            throw Exception(error['message'] ?? 'Failed to toggle availability');
+          }catch (e){
+            if (e is TimeSlotException) rethrow;
+            throw TimeSlotException('Failed to toggle availability');
+          }
+
         }
       } catch (e) {
         print('Toggle availability error: $e');
@@ -276,12 +289,36 @@
 
           return slots;
         } else {
-          final error = json.decode(response.body);
-          throw Exception(error['message'] ?? 'Failed to bulk create time slots');
+          try{
+              final er= jsonDecode(response.body);
+              if (er is Map && er.containsKey('detail')){
+                throw TimeSlotException(er['detail']);
+              }
+              if (er is Map && er.containsKey('message')) {
+                throw TimeSlotException(er['message']);
+              }
+              throw TimeSlotException('Failed to bulk create time slots');
+          }catch(e){
+            if (e is TimeSlotException) rethrow;
+            throw TimeSlotException('Failed to bulk create time slots');
+          }
         }
-      } catch (e) {
+      }on TimeSlotException {
+        rethrow;
+      }
+
+      catch (e) {
         print('Bulk create time slots error: $e');
         rethrow;
       }
     }
+    }
+  class TimeSlotException implements Exception {
+    final String message;
+
+    TimeSlotException(this.message);
+
+    @override
+    String toString() => message;
   }
+

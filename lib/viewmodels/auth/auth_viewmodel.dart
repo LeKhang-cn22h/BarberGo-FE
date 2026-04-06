@@ -343,22 +343,35 @@ class AuthViewModel extends ChangeNotifier {
 // ==================== LOGOUT ====================
 
   Future<void> logout() async {
-    print('🟦 [AUTH VIEWMODEL] Logout called');
+    print('[AUTH VIEWMODEL] Logout called');
 
     try {
-      // Logout từ backend
-      await _authService.logout();
-
-      // Logout từ Google (nếu đã đăng nhập bằng Google)
+      //  1. Clear FCM token trước khi logout
       try {
-        await googleAuthService.signOut();
-        print('[AUTH VIEWMODEL] Google sign out successful');
-      } catch (googleError) {
-        print('[AUTH VIEWMODEL] Google sign out error (might not be signed in): $googleError');
-        // Không throw error vì có thể user không đăng nhập bằng Google
+        final userId = await AuthStorage.getUserId();
+        if (userId != null) {
+          await Supabase.instance.client
+              .from('users')
+              .update({'fcm_token': null})
+              .eq('id', userId);
+          print(' [AUTH VIEWMODEL] FCM token cleared');
+        }
+      } catch (fcmError) {
+        print(' [AUTH VIEWMODEL] FCM cleanup error: $fcmError');
       }
 
-      // Clear local state
+      // 2. Logout từ backend
+      await _authService.logout();
+
+      // 3. Logout từ Google
+      try {
+        await googleAuthService.signOut();
+        print(' [AUTH VIEWMODEL] Google sign out successful');
+      } catch (googleError) {
+        print(' [AUTH VIEWMODEL] Google sign out error: $googleError');
+      }
+
+      // 4. Clear local state
       _currentUser = null;
       _accessToken = null;
       _userId = null;
@@ -369,7 +382,7 @@ class AuthViewModel extends ChangeNotifier {
       print('[AUTH VIEWMODEL] Logout successful');
 
     } catch (e) {
-      print('[AUTH VIEWMODEL] Logout error: $e');
+      print(' [AUTH VIEWMODEL] Logout error: $e');
 
       // Vẫn clear local state dù có lỗi
       _currentUser = null;

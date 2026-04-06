@@ -28,11 +28,7 @@ class _UpdateRatingDialogState extends State<UpdateRatingDialog> {
             'Đánh giá cho ${widget.rating.barber?.name ?? "Barber"}',
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 20),
-          Text(
-            'Đánh giá hiện tại: ${widget.rating.score?.toStringAsFixed(1)} sao',
-            style: const TextStyle(fontSize: 14, color: Colors.grey),
-          ),
+
           const SizedBox(height: 20),
           const Text('Chọn số sao mới:', style: TextStyle(fontSize: 16)),
           const SizedBox(height: 10),
@@ -89,8 +85,8 @@ class _UpdateRatingDialogState extends State<UpdateRatingDialog> {
       children: List.generate(5, (index) {
         final star = index + 1.0;
         return IconButton(
-          iconSize: 40,
-          icon: Icon(
+          iconSize: 30,
+          icon: Icon( 
             _selectedRating >= star ? Icons.star : Icons.star_border,
             color: const Color(0xFFF3B51C),
           ),

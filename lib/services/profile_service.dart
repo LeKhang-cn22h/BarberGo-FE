@@ -13,7 +13,7 @@ class ProfileService {
       final response = await _api.getProfile();
       return ProfileGetResponse.fromJson(response);
     } catch (e) {
-      print('❌ [ProfileService] Get profile error: $e');
+      print(' [ProfileService] Get profile error: $e');
       return ProfileGetResponse(
         success: false,
         message: 'Không thể tải thông tin profile: $e',
@@ -28,7 +28,7 @@ class ProfileService {
     required File avatarFile,
   }) async {
     try {
-      print('🔵 [ProfileService] Updating profile with avatar...');
+      print(' [ProfileService] Updating profile with avatar...');
       final response = await _api.updateProfile(
         fullName: fullName,
         phone: phone,
@@ -38,14 +38,14 @@ class ProfileService {
       final result = ProfileUpdateResponse.fromJson(response);
 
       if (result.success) {
-        print('✅ [ProfileService] Profile updated with avatar successfully');
+        print(' [ProfileService] Profile updated with avatar successfully');
       } else {
-        print('❌ [ProfileService] Failed to update profile: ${result.message}');
+        print(' [ProfileService] Failed to update profile: ${result.message}');
       }
 
       return result;
     } catch (e) {
-      print('❌ [ProfileService] Update profile error: $e');
+      print(' [ProfileService] Update profile error: $e');
       return ProfileUpdateResponse(
         success: false,
         message: 'Không thể cập nhật profile: $e',
@@ -59,7 +59,7 @@ class ProfileService {
     required String phone,
   }) async {
     try {
-      print('🔵 [ProfileService] Updating profile (basic info only)...');
+      print(' [ProfileService] Updating profile (basic info only)...');
       final response = await _api.updateProfileBasic(
         fullName: fullName,
         phone: phone,
@@ -68,14 +68,14 @@ class ProfileService {
       final result = ProfileUpdateResponse.fromJson(response);
 
       if (result.success) {
-        print('✅ [ProfileService] Profile updated successfully');
+        print(' [ProfileService] Profile updated successfully');
       } else {
-        print('❌ [ProfileService] Failed to update profile: ${result.message}');
+        print('[ProfileService] Failed to update profile: ${result.message}');
       }
 
       return result;
     } catch (e) {
-      print('❌ [ProfileService] Update profile error: $e');
+      print(' [ProfileService] Update profile error: $e');
       return ProfileUpdateResponse(
         success: false,
         message: 'Không thể cập nhật profile: $e',
@@ -88,20 +88,20 @@ class ProfileService {
     required File avatarFile,
   }) async {
     try {
-      print('🔵 [ProfileService] Uploading avatar...');
+      print(' [ProfileService] Uploading avatar...');
       final response = await _api.uploadAvatar(avatarFile: avatarFile);
 
       final result = AvatarUploadResponse.fromJson(response);
 
       if (result.success) {
-        print('✅ [ProfileService] Avatar uploaded successfully');
+        print(' [ProfileService] Avatar uploaded successfully');
       } else {
-        print('❌ [ProfileService] Failed to upload avatar: ${result.message}');
+        print(' [ProfileService] Failed to upload avatar: ${result.message}');
       }
 
       return result;
     } catch (e) {
-      print('❌ [ProfileService] Upload avatar error: $e');
+      print(' [ProfileService] Upload avatar error: $e');
       return AvatarUploadResponse(
         success: false,
         message: 'Không thể tải lên avatar: $e',
@@ -112,20 +112,20 @@ class ProfileService {
   // ==================== DELETE PROFILE ====================
   Future<DeleteProfileResponse> deleteProfile() async {
     try {
-      print('🔵 [ProfileService] Deleting profile...');
+      print(' [ProfileService] Deleting profile...');
       final response = await _api.deleteProfile();
 
       final result = DeleteProfileResponse.fromJson(response);
 
       if (result.success) {
-        print('✅ [ProfileService] Profile deleted successfully');
+        print(' [ProfileService] Profile deleted successfully');
       } else {
-        print('❌ [ProfileService] Failed to delete profile: ${result.message}');
+        print(' [ProfileService] Failed to delete profile: ${result.message}');
       }
 
       return result;
     } catch (e) {
-      print('❌ [ProfileService] Delete profile error: $e');
+      print(' [ProfileService] Delete profile error: $e');
       return DeleteProfileResponse(
         success: false,
         message: 'Không thể xóa tài khoản: $e',
@@ -136,20 +136,20 @@ class ProfileService {
   // ==================== BLOCK USER ====================
   Future<BlockUserResponse> blockUser(String targetUserId) async {
     try {
-      print('🔵 [ProfileService] Blocking user: $targetUserId');
+      print(' [ProfileService] Blocking user: $targetUserId');
       final response = await _api.blockProfile(targetUserId, block: true);
 
       final result = BlockUserResponse.fromJson(response);
 
       if (result.success) {
-        print('✅ [ProfileService] User blocked successfully');
+        print(' [ProfileService] User blocked successfully');
       } else {
-        print('❌ [ProfileService] Failed to block user: ${result.message}');
+        print(' [ProfileService] Failed to block user: ${result.message}');
       }
 
       return result;
     } catch (e) {
-      print('❌ [ProfileService] Block user error: $e');
+      print(' [ProfileService] Block user error: $e');
       return BlockUserResponse(
         success: false,
         message: 'Không thể chặn người dùng: $e',
@@ -160,20 +160,20 @@ class ProfileService {
   // ==================== UNBLOCK USER ====================
   Future<BlockUserResponse> unblockUser(String targetUserId) async {
     try {
-      print('🔵 [ProfileService] Unblocking user: $targetUserId');
+      print('[ProfileService] Unblocking user: $targetUserId');
       final response = await _api.blockProfile(targetUserId, block: false);
 
       final result = BlockUserResponse.fromJson(response);
 
       if (result.success) {
-        print('✅ [ProfileService] User unblocked successfully');
+        print('[ProfileService] User unblocked successfully');
       } else {
-        print('❌ [ProfileService] Failed to unblock user: ${result.message}');
+        print('[ProfileService] Failed to unblock user: ${result.message}');
       }
 
       return result;
     } catch (e) {
-      print('❌ [ProfileService] Unblock user error: $e');
+      print(' [ProfileService] Unblock user error: $e');
       return BlockUserResponse(
         success: false,
         message: 'Không thể bỏ chặn người dùng: $e',
@@ -187,20 +187,20 @@ class ProfileService {
     int limit = 20,
   }) async {
     try {
-      print('🔵 [ProfileService] Getting all users (page: $page, limit: $limit)...');
+      print(' [ProfileService] Getting all users (page: $page, limit: $limit)...');
       final response = await _api.getAllUsers(page: page, limit: limit);
 
       final result = GetAllUsersResponse.fromJson(response);
 
       if (result.success) {
-        print('✅ [ProfileService] Got ${result.users.length} users');
+        print('[ProfileService] Got ${result.users.length} users');
       } else {
-        print('❌ [ProfileService] Failed to get users: ${result.message}');
+        print('[ProfileService] Failed to get users: ${result.message}');
       }
 
       return result;
     } catch (e) {
-      print('❌ [ProfileService] Get all users error: $e');
+      print(' [ProfileService] Get all users error: $e');
       return GetAllUsersResponse(
         success: false,
         message: 'Không thể tải danh sách người dùng: $e',

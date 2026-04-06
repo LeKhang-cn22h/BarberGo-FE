@@ -1,5 +1,6 @@
-
+import 'package:barbergofe/core/network/dio_client.dart';
 import 'package:barbergofe/routes/owner_shell_routes.dart';
+import 'package:barbergofe/viewmodels/acne/acne_viewmodel.dart';
 import 'package:barbergofe/views/Barbers/Areas_page.dart';
 import 'package:barbergofe/views/Barbers/Barbers_page.dart';
 import 'package:barbergofe/views/acne/acne_history_screen.dart';
@@ -9,10 +10,10 @@ import 'package:barbergofe/views/hair/hair_history_screen.dart';
 import 'package:barbergofe/views/location/location_picker_page.dart';
 import 'package:barbergofe/views/map/osm_map_screen.dart';
 import 'package:barbergofe/views/ownerRating/ownerRating_page.dart';
-import 'package:barbergofe/views/profile/PartnerSignUpForm.dart';
-import 'package:barbergofe/views/profile/appointment_detail_page.dart';
+import 'package:barbergofe/views/PartnerSignUp/PartnerSignUpForm.dart';
+import 'package:barbergofe/views/appointment/appointment_detail_page.dart';
 import 'package:barbergofe/views/profile/change_password_page.dart';
-import 'package:barbergofe/views/profile/partner_registration_page.dart';
+import 'package:barbergofe/views/PartnerSignUp/partner_registration_page.dart';
 import 'package:barbergofe/views/profile/personal_info_page..dart';
 import 'package:barbergofe/views/rating/rating_page.dart';
 import 'package:flutter/material.dart';
@@ -34,10 +35,10 @@ import 'package:barbergofe/views/not_found_page.dart';
 
 import 'package:barbergofe/views/detail_shop/detail_shop_page.dart';
 import 'package:barbergofe/views/acne/acne_camera_view.dart';
-import 'package:barbergofe/viewmodels/acne_viewmodel.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
+    navigatorKey: NavigationService.navigatorKey,
     initialLocation: RouteNames.getStarted,
     debugLogDiagnostics: true,
 
@@ -250,23 +251,23 @@ class AppRouter {
             ;
         },
       ),
-      GoRoute(
-        path: '/service-selection',
-        name: 'service-selection',
-        pageBuilder: (context, state) {
-          final args = state.extra as Map<String, dynamic>?;
-
-          return MaterialPage(
-            key: state.pageKey,
-            child: ServiceSelectionPage(
-              barberId: args?['barberId'] as String,
-              selectedServiceIds: (args?['selectedServiceIds'] as List<dynamic>?)
-                  ?.map((id) => id as int)
-                  .toList() ?? [],
-            ),
-          );
-        },
-      ),
+      // GoRoute(
+      //   path: '/service-selection',
+      //   name: 'service-selection',
+      //   pageBuilder: (context, state) {
+      //     final args = state.extra as Map<String, dynamic>?;
+      //
+      //     return MaterialPage(
+      //       key: state.pageKey,
+      //       child: ServiceSelectionPage(
+      //         barberId: args?['barberId'] as String,
+      //         selectedServiceIds: (args?['selectedServiceIds'] as List<dynamic>?)
+      //             ?.map((id) => id as int)
+      //             .toList() ?? [],
+      //       ),
+      //     );
+      //   },
+      // ),
 
       // ==================== PROFILE ROUTES ====================
       GoRoute(
@@ -381,7 +382,7 @@ class AppRouter {
         path == RouteNames.getStarted;
   }
 
-  static bool _isProtectedPage(String path) {
+  static bool _isProtectedPage(String path)  {
     return path == RouteNames.home ||
         path == RouteNames.acnes ||
         path.startsWith('/detail/');

@@ -27,7 +27,7 @@ class ProfileViewModel extends ChangeNotifier {
 
   // ==================== LOAD PROFILE ====================
   Future<bool> loadProfile() async {
-    print('🔵 [ProfileViewModel] Loading profile...');
+    print('[ProfileViewModel] Loading profile...');
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -38,21 +38,21 @@ class ProfileViewModel extends ChangeNotifier {
       if (response.success && response.user != null) {
         _currentUser = response.user;
         _errorMessage = null;
-        print('✅ [ProfileViewModel] Profile loaded successfully');
+        print(' [ProfileViewModel] Profile loaded successfully');
         print('   User: ${_currentUser?.fullName} (${_currentUser?.email})');
         _isLoading = false;
         notifyListeners();
         return true;
       } else {
         _errorMessage = response.message ?? 'Không thể tải thông tin profile';
-        print('❌ [ProfileViewModel] Failed to load profile: $_errorMessage');
+        print(' [ProfileViewModel] Failed to load profile: $_errorMessage');
         _isLoading = false;
         notifyListeners();
         return false;
       }
     } catch (e) {
       _errorMessage = 'Lỗi khi tải profile: $e';
-      print('❌ [ProfileViewModel] Load profile error: $e');
+      print(' [ProfileViewModel] Load profile error: $e');
       _isLoading = false;
       notifyListeners();
       return false;
@@ -67,7 +67,7 @@ class ProfileViewModel extends ChangeNotifier {
       return false;
     }
 
-    print('🔵 [ProfileViewModel] Updating name to: $newName');
+    print('[ProfileViewModel] Updating name to: $newName');
     _isUpdating = true;
     _errorMessage = null;
     notifyListeners();
@@ -81,20 +81,20 @@ class ProfileViewModel extends ChangeNotifier {
       if (response.success && response.user != null) {
         _currentUser = response.user;
         _errorMessage = null;
-        print('✅ [ProfileViewModel] Name updated successfully');
+        print('[ProfileViewModel] Name updated successfully');
         _isUpdating = false;
         notifyListeners();
         return true;
       } else {
         _errorMessage = response.message;
-        print('❌ [ProfileViewModel] Failed to update name: $_errorMessage');
+        print(' [ProfileViewModel] Failed to update name: $_errorMessage');
         _isUpdating = false;
         notifyListeners();
         return false;
       }
     } catch (e) {
       _errorMessage = 'Lỗi khi cập nhật tên: $e';
-      print('❌ [ProfileViewModel] Update name error: $e');
+      print('[ProfileViewModel] Update name error: $e');
       _isUpdating = false;
       notifyListeners();
       return false;
@@ -109,7 +109,7 @@ class ProfileViewModel extends ChangeNotifier {
       return false;
     }
 
-    print('🔵 [ProfileViewModel] Updating phone to: $newPhone');
+    print('[ProfileViewModel] Updating phone to: $newPhone');
     _isUpdating = true;
     _errorMessage = null;
     notifyListeners();
@@ -123,20 +123,20 @@ class ProfileViewModel extends ChangeNotifier {
       if (response.success && response.user != null) {
         _currentUser = response.user;
         _errorMessage = null;
-        print('✅ [ProfileViewModel] Phone updated successfully');
+        print('[ProfileViewModel] Phone updated successfully');
         _isUpdating = false;
         notifyListeners();
         return true;
       } else {
         _errorMessage = response.message;
-        print('❌ [ProfileViewModel] Failed to update phone: $_errorMessage');
+        print('[ProfileViewModel] Failed to update phone: $_errorMessage');
         _isUpdating = false;
         notifyListeners();
         return false;
       }
     } catch (e) {
       _errorMessage = 'Lỗi khi cập nhật số điện thoại: $e';
-      print('❌ [ProfileViewModel] Update phone error: $e');
+      print('[ProfileViewModel] Update phone error: $e');
       _isUpdating = false;
       notifyListeners();
       return false;
@@ -151,7 +151,7 @@ class ProfileViewModel extends ChangeNotifier {
       return false;
     }
 
-    print('🔵 [ProfileViewModel] Updating avatar...');
+    print('[ProfileViewModel] Updating avatar...');
     _isUpdating = true;
     _errorMessage = null;
     notifyListeners();
@@ -163,20 +163,20 @@ class ProfileViewModel extends ChangeNotifier {
         // Reload profile để lấy avatar URL mới
         await loadProfile();
         _errorMessage = null;
-        print('✅ [ProfileViewModel] Avatar updated successfully');
+        print('[ProfileViewModel] Avatar updated successfully');
         _isUpdating = false;
         notifyListeners();
         return true;
       } else {
         _errorMessage = response.message;
-        print('❌ [ProfileViewModel] Failed to update avatar: $_errorMessage');
+        print('[ProfileViewModel] Failed to update avatar: $_errorMessage');
         _isUpdating = false;
         notifyListeners();
         return false;
       }
     } catch (e) {
       _errorMessage = 'Lỗi khi cập nhật avatar: $e';
-      print('❌ [ProfileViewModel] Update avatar error: $e');
+      print('[ProfileViewModel] Update avatar error: $e');
       _isUpdating = false;
       notifyListeners();
       return false;
@@ -189,7 +189,7 @@ class ProfileViewModel extends ChangeNotifier {
     required String phone,
     required File avatarFile,
   }) async {
-    print('🔵 [ProfileViewModel] Updating full profile with avatar...');
+    print('[ProfileViewModel] Updating full profile with avatar...');
     _isUpdating = true;
     _errorMessage = null;
     notifyListeners();
@@ -204,20 +204,20 @@ class ProfileViewModel extends ChangeNotifier {
       if (response.success && response.user != null) {
         _currentUser = response.user;
         _errorMessage = null;
-        print('✅ [ProfileViewModel] Full profile updated successfully');
+        print('[ProfileViewModel] Full profile updated successfully');
         _isUpdating = false;
         notifyListeners();
         return true;
       } else {
         _errorMessage = response.message;
-        print('❌ [ProfileViewModel] Failed to update profile: $_errorMessage');
+        print('[ProfileViewModel] Failed to update profile: $_errorMessage');
         _isUpdating = false;
         notifyListeners();
         return false;
       }
     } catch (e) {
       _errorMessage = 'Lỗi khi cập nhật profile: $e';
-      print('❌ [ProfileViewModel] Update profile error: $e');
+      print('[ProfileViewModel] Update profile error: $e');
       _isUpdating = false;
       notifyListeners();
       return false;
@@ -226,7 +226,7 @@ class ProfileViewModel extends ChangeNotifier {
 
   // ==================== DELETE PROFILE ====================
   Future<bool> deleteProfile() async {
-    print('🔵 [ProfileViewModel] Deleting profile...');
+    print('[ProfileViewModel] Deleting profile...');
     _isUpdating = true;
     _errorMessage = null;
     notifyListeners();
@@ -237,20 +237,20 @@ class ProfileViewModel extends ChangeNotifier {
       if (response.success) {
         _currentUser = null;
         _errorMessage = null;
-        print('✅ [ProfileViewModel] Profile deleted successfully');
+        print(' [ProfileViewModel] Profile deleted successfully');
         _isUpdating = false;
         notifyListeners();
         return true;
       } else {
         _errorMessage = response.message;
-        print('❌ [ProfileViewModel] Failed to delete profile: $_errorMessage');
+        print(' [ProfileViewModel] Failed to delete profile: $_errorMessage');
         _isUpdating = false;
         notifyListeners();
         return false;
       }
     } catch (e) {
       _errorMessage = 'Lỗi khi xóa tài khoản: $e';
-      print('❌ [ProfileViewModel] Delete profile error: $e');
+      print('[ProfileViewModel] Delete profile error: $e');
       _isUpdating = false;
       notifyListeners();
       return false;

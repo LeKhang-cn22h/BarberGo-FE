@@ -43,7 +43,7 @@ class ChatSidebar extends StatelessWidget {
                       itemCount: vm.sessions.length,
                       itemBuilder: (context, index) {
                         final session = vm.sessions[index];
-                        final isSelected = session.id == vm.currentSessions; // Check lại tên biến trong ViewModel của bạn (currentSessionId hay currentSessions)
+                        final isSelected = session.id == vm.currentSessions;
 
                         return Container(
                           margin: const EdgeInsets.symmetric(vertical: 4),

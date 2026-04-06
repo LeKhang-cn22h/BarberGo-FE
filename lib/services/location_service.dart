@@ -6,13 +6,13 @@ class LocationService {
   // ==================== GET CURRENT LOCATION ====================
 
   static Future<Position?> getCurrentLocation() async {
-    print('🔵 [LOCATION SERVICE] Getting current location...');
+    print(' [LOCATION SERVICE] Getting current location...');
 
     try {
       // Check if location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        print('❌ [LOCATION SERVICE] Location services disabled');
+        print(' [LOCATION SERVICE] Location services disabled');
         throw Exception('Vui lòng bật dịch vụ vị trí');
       }
 
@@ -22,13 +22,13 @@ class LocationService {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          print('❌ [LOCATION SERVICE] Permission denied');
+          print(' [LOCATION SERVICE] Permission denied');
           throw Exception('Quyền truy cập vị trí bị từ chối');
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        print('❌ [LOCATION SERVICE] Permission denied forever');
+        print(' [LOCATION SERVICE] Permission denied forever');
         throw Exception('Vui lòng cấp quyền truy cập vị trí trong Cài đặt');
       }
 
@@ -37,14 +37,14 @@ class LocationService {
         desiredAccuracy: LocationAccuracy.high,
       );
 
-      print('✅ [LOCATION SERVICE] Location obtained');
+      print(' [LOCATION SERVICE] Location obtained');
       print('   Latitude: ${position.latitude}');
       print('   Longitude: ${position.longitude}');
 
       return position;
 
     } catch (e) {
-      print('❌ [LOCATION SERVICE] Error: $e');
+      print(' [LOCATION SERVICE] Error: $e');
       rethrow;
     }
   }
@@ -55,7 +55,7 @@ class LocationService {
     required double latitude,
     required double longitude,
   }) async {
-    print('🔵 [LOCATION SERVICE] Reverse geocoding...');
+    print(' [LOCATION SERVICE] Reverse geocoding...');
     print('   Lat: $latitude, Lng: $longitude');
 
     try {
@@ -72,12 +72,12 @@ class LocationService {
       // Format địa chỉ theo kiểu Việt Nam
       String address = _formatVietnameseAddress(place);
 
-      print('✅ [LOCATION SERVICE] Address: $address');
+      print('[LOCATION SERVICE] Address: $address');
 
       return address;
 
     } catch (e) {
-      print('❌ [LOCATION SERVICE] Geocoding error: $e');
+      print(' [LOCATION SERVICE] Geocoding error: $e');
       rethrow;
     }
   }
@@ -121,7 +121,7 @@ class LocationService {
   // ==================== GET LOCATION WITH ADDRESS ====================
 
   static Future<Map<String, dynamic>> getCurrentLocationWithAddress() async {
-    print('🔵 [LOCATION SERVICE] Getting location with address...');
+    print(' [LOCATION SERVICE] Getting location with address...');
 
     try {
       Position? position = await getCurrentLocation();
@@ -143,7 +143,7 @@ class LocationService {
       };
 
     } catch (e) {
-      print('❌ [LOCATION SERVICE] Error: $e');
+      print(' [LOCATION SERVICE] Error: $e');
       rethrow;
     }
   }

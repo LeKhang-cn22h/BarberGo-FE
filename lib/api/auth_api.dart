@@ -163,7 +163,7 @@ import 'endpoints/auth_endpoint.dart';
 
    Future<String> resendConfirmation({required String email}) async {
      final url = ApiConfig.getUrl(AuthEndpoint.authResendConfirmation);
-     print('🌐 POST: $url');
+     print('POST: $url');
 
      try {
        final response = await http.post(

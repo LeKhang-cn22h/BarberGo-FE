@@ -7,7 +7,9 @@ import '../core/utils/auth_storage.dart';
 import '../models/barber/barber_model.dart';
 import 'endpoints/barber_endpoint.dart';
 import 'package:http_parser/http_parser.dart';
+
 class BarberApi {
+  final Dio _dio = Dio();
 
   // ==================== GET TOP BARBERS ====================
   Future<GetAllBarbersResponse> getTopBarbers({int limit = 2}) async {
@@ -199,14 +201,14 @@ class BarberApi {
       '${ApiConfig.baseUrl}/barbers/location/$barberId',
     );
 
-    print('🔵 PATCH $url');
+    print(' PATCH $url');
 
     try {
       final response = await http.patch(
         url,
         headers: {
           'Authorization': 'Bearer ${await AuthStorage.getAccessToken()}',
-          // ✅ KHÔNG set Content-Type
+          //  KHÔNG set Content-Type
         },
         body: {
           'lat': lat.toString(),
@@ -223,7 +225,81 @@ class BarberApi {
       rethrow;
     }
   }
+  //update ảnh cho barber
+  Future<BarberUpdateResponse> uploadBarberImage({
+    required String barberId,
+    required File imageFile,
+  }) async {
+    final url = '${ApiConfig.getUrl(BarberEndpoint.barberUpdateId)}/$barberId';
+    print(' [API] PUT: $url');
 
+    try {
+      final formData = FormData.fromMap({
+        'image': await MultipartFile.fromFile(
+          imageFile.path,
+          filename: 'barber_${barberId}_${DateTime.now().millisecondsSinceEpoch}.jpg',
+          contentType: MediaType('image', 'jpeg'),
+        ),
+      });
+
+      print(' [API] Uploading image: ${imageFile.path}');
+
+      final response = await _dio.put(
+        url,
+        data: formData,
+        options: Options(
+          headers: await ApiConfig.getHeaders(),
+          contentType: 'multipart/form-data',
+        ),
+      );
+
+      print(' [API] Status: ${response.statusCode}');
+      print('[API] Data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+
+        //  Case 1: Response là List [{}]
+        if (data is List && data.isNotEmpty) {
+          print(' [API] Parsing List response');
+          return BarberUpdateResponse(
+            success: true,
+            message: 'Upload thành công',
+            barber: BarberModel.fromJson(data[0]),
+          );
+        }
+
+        //  Case 2: Response là Map {success: true, data: {}}
+        if (data is Map<String, dynamic>) {
+          print('[API] Parsing Map response');
+
+          // Có field 'data'
+          if (data.containsKey('data')) {
+            return BarberUpdateResponse.fromJson(data);
+          }
+
+          // Không có field 'data' - coi như data chính là barber
+          return BarberUpdateResponse(
+            success: data['success'] ?? true,
+            message: data['message'] ?? 'Upload thành công',
+            barber: BarberModel.fromJson(data),
+          );
+        }
+
+        throw Exception('Unexpected response format: ${data.runtimeType}');
+      }
+
+      throw Exception('Upload failed: ${response.statusCode}');
+
+    } on DioException catch (e) {
+      print(' [API] DioException: ${e.message}');
+      print(' [API] Response: ${e.response?.data}');
+      throw Exception('Upload failed: ${e.message}');
+    } catch (e) {
+      print(' [API] Error: $e');
+      rethrow;
+    }
+  }
 
   // ==================== GET BARBERS BY AREA ====================
   Future<GetAllBarbersResponse> getBarbersByArea(String area) async {
@@ -348,8 +424,8 @@ class BarberApi {
       ApiConfig.getUrlWithId(BarberEndpoint.barberUpdateId, barberId),
     );
 
-    print('🔵 [API] PUT $url');
-    print('🔵 [API] Request data: ${request.toJson()}');
+    print(' [API] PUT $url');
+    print(' [API] Request data: ${request.toJson()}');
 
     try {
       final multipartRequest = http.MultipartRequest('PUT', url);
@@ -361,33 +437,33 @@ class BarberApi {
 
       if (request.name != null) {
         multipartRequest.fields['name'] = request.name!;
-        print('🔵 [API] Added name: "${request.name}"');
+        print(' [API] Added name: "${request.name}"');
       }
 
       if (request.address != null) {
         multipartRequest.fields['address'] = request.address!;
-        print('🔵 [API] Added address: "${request.address}"');
+        print(' [API] Added address: "${request.address}"');
       }
 
       if (request.area != null) {
         multipartRequest.fields['area'] = request.area!;
-        print('🔵 [API] Added area: "${request.area}"');
+        print(' [API] Added area: "${request.area}"');
       }
 
       if (request.rank != null) {
         multipartRequest.fields['rank'] = request.rank.toString();
-        print('🔵 [API] Added rank: ${request.rank}');
+        print(' [API] Added rank: ${request.rank}');
       }
 
       if (request.status != null) {
         multipartRequest.fields['status'] = request.status.toString();
-        print('🔵 [API] Added status: ${request.status}');
+        print(' [API] Added status: ${request.status}');
       }
 
       if (request.location != null) {
         final locationJson = jsonEncode(request.location!.toJson());
         multipartRequest.fields['location'] = locationJson;
-        print('🔵 [API] Added location: $locationJson');
+        print(' [API] Added location: $locationJson');
       }
 
       if (request.imagePath != null && request.imagePath!.isNotEmpty) {
@@ -406,11 +482,11 @@ class BarberApi {
           );
 
           multipartRequest.files.add(multipartFile);
-          print('🔵 [API] Added image: $filename');
+          print(' [API] Added image: $filename');
         }
       }
 
-      print('🔵 [API] Sending request...');
+      print(' [API] Sending request...');
 
       final streamedResponse = await multipartRequest.send().timeout(
         ApiConfig.uploadTimeout,
@@ -418,14 +494,14 @@ class BarberApi {
 
       final response = await http.Response.fromStream(streamedResponse);
 
-      print('🔵 [API] Response status: ${response.statusCode}');
-      print('🔵 [API] Response body: ${response.body}');
+      print(' [API] Response status: ${response.statusCode}');
+      print(' [API] Response body: ${response.body}');
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final jsonResponse = json.decode(response.body);
 
-        // ✅ KIỂM TRA RESPONSE FORMAT
-        print('🔵 [API] Response type: ${jsonResponse.runtimeType}');
+        //  KIỂM TRA RESPONSE FORMAT
+        print(' [API] Response type: ${jsonResponse.runtimeType}');
 
         // Backend trả về TRỰC TIẾP barber object (không có wrapper)
         // Cần wrap vào BarberUpdateResponse format
@@ -436,7 +512,7 @@ class BarberApi {
           statusCode: response.statusCode,
         );
 
-        print('🔵 [API] Parsed barber: ${barberUpdateResponse.barber?.name}');
+        print(' [API] Parsed barber: ${barberUpdateResponse.barber?.name}');
 
         return barberUpdateResponse;
       } else {
@@ -444,7 +520,7 @@ class BarberApi {
         throw Exception(error['message'] ?? 'Update barber failed');
       }
     } catch (e) {
-      print('🔴 [API] Error: $e');
+      print(' [API] Error: $e');
       rethrow;
     }
   }

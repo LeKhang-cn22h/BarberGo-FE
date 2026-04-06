@@ -25,4 +25,7 @@ class ChatEndpoint{
   static const String UpdateDocument="$baseLink/documents";
   //Xóa document /documents/{document_id}
   static const String DeleteDocument="$baseLink/documents";
+  //gợi ý store
+  static const String SearchBarber = "/api/barber-documents/search";
+
 }

@@ -152,7 +152,7 @@ class ServiceApi {
   }
 // ==================== UPDATE SERVICE ====================
   Future<ServiceUpdateResponse> updateService(
-      String serviceId,
+      int serviceId,
       ServiceUpdateRequest request,
       ) async {
     final url = Uri.parse(

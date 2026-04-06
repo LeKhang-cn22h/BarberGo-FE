@@ -1,3 +1,4 @@
+import 'package:barbergofe/api/time_slot_api.dart';
 import 'package:flutter/material.dart';
 import 'package:barbergofe/services/time_slot_service.dart';
 import 'package:barbergofe/models/time_slot/time_slot_model.dart';
@@ -147,12 +148,18 @@ class TimeSlotViewModel extends ChangeNotifier {
       // Sort lại theo thời gian
       _timeSlots = _timeSlotService.sortByTime(_timeSlots);
 
-      print('✅ Created ${newSlots.length} time slots');
+      print(' Created ${newSlots.length} time slots');
       notifyListeners();
       return true;
-    } catch (e) {
+    } on TimeSlotException catch (e) {
+      _error = e.message;
+      print(' Error bulk creating time slots: $_error');
+      notifyListeners();
+      return false;
+    }
+    catch (e) {
       _error = e.toString();
-      print('❌ Error bulk creating time slots: $e');
+      print(' Error bulk creating time slots: $e');
       notifyListeners();
       return false;
     } finally {

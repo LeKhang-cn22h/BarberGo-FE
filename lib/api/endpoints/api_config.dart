@@ -1,115 +1,150 @@
 import 'package:barbergofe/core/utils/auth_storage.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:barbergofe/routes/app_router.dart';
+import 'package:barbergofe/services/session_manager.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ApiConfig {
-  static const String devBaseUrl = "http://192.168.1.14:8000";
-  static const String prodBaseUrl = "https://your-production-url.com";
-
-  /// Current active base URL (change this when deploying)
+  static const String devBaseUrl = "http://192.168.1.13:8000";
   static const String baseUrl = devBaseUrl;
+
   // ==================== HELPER METHODS ====================
 
-  /// Tạo full URL từ endpoint
-  ///
-  /// Example: getUrl("/users/") → "http://192.168.1.183:8000/users/"
-  static String getUrl(String endpoint) {
-    return '$baseUrl$endpoint';
+  static String getUrl(String endpoint) => '$baseUrl$endpoint';
+  static String getUrlWithId(String endpoint, dynamic id) => '$baseUrl$endpoint/$id';
+  static String getUrlWithIdAndAction(String endpoint, dynamic id, String action) =>
+      '$baseUrl$endpoint/$id/$action';
+
+  // ==================== AUTO-REFRESH TOKEN ====================
+
+  /// Kiểm tra token có hết hạn không (dựa vào JWT payload)
+  static bool _isTokenExpired(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return true;
+
+      // Decode JWT payload
+      final payload = json.decode(
+          utf8.decode(base64Url.decode(base64Url.normalize(parts[1])))
+      );
+
+      final exp = payload['exp'] as int?;
+      if (exp == null) return false;
+
+      final expiryDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
+      final now = DateTime.now();
+
+      // Refresh trước 5 phút để tránh race condition
+      return expiryDate.isBefore(now.add(Duration(minutes: 5)));
+    } catch (e) {
+      print(' Error checking token expiry: $e');
+      return true; // Nếu decode lỗi → coi như expired
+    }
   }
 
-  static String getUrlWithId(String endpoint, dynamic id) {
-    return '$baseUrl$endpoint/$id';
+  /// Refresh access token tự động
+  static Future<String?> _refreshAccessToken() async {
+    final refreshToken = await AuthStorage.getRefreshToken();
+    if (refreshToken == null || refreshToken.isEmpty) {
+      print(' No refresh token found');
+      return null;
+    }
+
+    try {
+      print(' Refreshing access token...');
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/users/auth/refresh'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'refresh_token': refreshToken}),
+      ).timeout(timeout);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final newAccessToken = data['access_token'] ?? data['accessToken'];
+        final newRefreshToken = data['refresh_token'] ?? data['refreshToken'];
+
+        if (newAccessToken != null) {
+          // Lưu token mới vào storage
+          await AuthStorage.saveAuthData(
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken ?? refreshToken,
+            userId: await AuthStorage.getUserId() ?? '',
+            email: await AuthStorage.getUserEmail() ?? '',
+            fullName: await AuthStorage.getUserName() ?? '',
+            role: await AuthStorage.getUserRole() ?? '',
+          );
+
+          print(' Token refreshed successfully');
+          return newAccessToken;
+        }
+      } else {
+        print(' Refresh token failed: ${response.statusCode}');
+        print('Response: ${response.body}');
+      }
+    } catch (e) {
+      print(' Error refreshing token: $e');
+    }
+
+    return null;
   }
 
-  static String getUrlWithIdAndAction(String endpoint, String id, String action) {
-    return '$baseUrl$endpoint/$id/$action';
-  }
+  // ==================== GET HEADERS WITH AUTO-REFRESH ====================
 
-  // ==================== HTTP HEADERS (ĐÃ CẬP NHẬT) ====================
-
-  /// Tạo headers với token tự động refresh
   static Future<Map<String, String>> getHeaders({String? token}) async {
     final headers = <String, String>{
       'Content-Type': 'application/json',
     };
 
-    //  Tự động lấy token mới nhất từ Supabase
-    try {
-      final session = Supabase.instance.client.auth.currentSession;
+    // Lấy token (ưu tiên token được truyền vào, nếu không thì lấy từ storage)
+    String? accessToken = token ?? await AuthStorage.getAccessToken();
 
-      if (session != null) {
-        // Kiểm tra token sắp hết hạn (trước 5 phút)
-        final expiresAt = session.expiresAt;
-        final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    if (accessToken != null && accessToken.isNotEmpty) {
+      // KIỂM TRA VÀ TỰ ĐỘNG REFRESH NẾU HẾT HẠN
+      if (_isTokenExpired(accessToken)) {
+        print(' Token expired, auto-refreshing...');
+        final newToken = await _refreshAccessToken();
 
-        if (expiresAt != null && expiresAt - now < 300) {
-          print(' Token sắp hết hạn, đang refresh...');
-          final refreshResponse = await Supabase.instance.client.auth.refreshSession();
-
-          if (refreshResponse.session != null) {
-            // Lưu token mới
-            await AuthStorage.saveAuthData(
-              accessToken: refreshResponse.session!.accessToken,
-              refreshToken: refreshResponse.session!.refreshToken ?? '',
-              userId: refreshResponse.session!.user.id,
-              email: refreshResponse.session!.user.email ?? '',
-              fullName: refreshResponse.session!.user.userMetadata?['full_name'] ?? '',
-            );
-            headers['Authorization'] = 'Bearer ${refreshResponse.session!.accessToken}';
-            print('Token đã được refresh');
-          }
+        if (newToken != null) {
+          accessToken = newToken;
         } else {
-          // Token còn hạn, dùng luôn
-          headers['Authorization'] = 'Bearer ${session.accessToken}';
+          print(' Failed to refresh token - user may need to re-login');
+          final ctx = AppRouter.router.routerDelegate.navigatorKey.currentContext;
+          await SessionManager.handleExpired(ctx);
+          throw Exception('Failed to refresh token');
         }
-      } else if (token != null && token.isNotEmpty) {
-        // Fallback: dùng token được truyền vào
-        headers['Authorization'] = 'Bearer $token';
       }
-    } catch (e) {
-      print('⚠Error getting token: $e');
-      // Nếu có lỗi, dùng token được truyền vào
-      if (token != null && token.isNotEmpty) {
-        headers['Authorization'] = 'Bearer $token';
-      }
+
+      headers['Authorization'] = 'Bearer $accessToken';
+    } else {
+      print(' No access token available');
     }
 
     return headers;
   }
 
-  /// Tạo headers cho upload file
+  /// Headers cho multipart (upload file)
   static Future<Map<String, String>> getMultipartHeaders({String? token}) async {
     final headers = <String, String>{};
 
-    try {
-      final session = Supabase.instance.client.auth.currentSession;
+    String? accessToken = token ?? await AuthStorage.getAccessToken();
 
-      if (session != null) {
-        final expiresAt = session.expiresAt;
-        final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-
-        if (expiresAt != null && expiresAt - now < 300) {
-          final refreshResponse = await Supabase.instance.client.auth.refreshSession();
-          if (refreshResponse.session != null) {
-            await AuthStorage.saveAuthData(
-              accessToken: refreshResponse.session!.accessToken,
-              refreshToken: refreshResponse.session!.refreshToken ?? '',
-              userId: refreshResponse.session!.user.id,
-              email: refreshResponse.session!.user.email ?? '',
-              fullName: refreshResponse.session!.user.userMetadata?['full_name'] ?? '',
-            );
-            headers['Authorization'] = 'Bearer ${refreshResponse.session!.accessToken}';
-          }
-        } else {
-          headers['Authorization'] = 'Bearer ${session.accessToken}';
+    if (accessToken != null && accessToken.isNotEmpty) {
+      //  KIỂM TRA VÀ TỰ ĐỘNG REFRESH
+      if (_isTokenExpired(accessToken)) {
+        print(' Token expired, auto-refreshing...');
+        final newToken = await _refreshAccessToken();
+        if (newToken != null) {
+          accessToken = newToken;
         }
-      } else if (token != null && token.isNotEmpty) {
-        headers['Authorization'] = 'Bearer $token';
       }
-    } catch (e) {
-      print(' Error getting token: $e');
-      if (token != null && token.isNotEmpty) {
-        headers['Authorization'] = 'Bearer $token';
+      else{
+        print('No access token available');
+        final ctx = AppRouter.router.routerDelegate.navigatorKey.currentContext;
+        await SessionManager.handleExpired(ctx);
       }
+
+      headers['Authorization'] = 'Bearer $accessToken';
     }
 
     return headers;
@@ -117,12 +152,7 @@ class ApiConfig {
 
   // ==================== TIMEOUT CONFIGURATION ====================
 
-  /// Timeout cho request thông thường (30 giây)
   static const Duration timeout = Duration(seconds: 30);
-
-  /// Timeout cho kết nối (15 giây)
   static const Duration connectionTimeout = Duration(seconds: 15);
-
-  /// Timeout cho upload file (60 giây)
   static const Duration uploadTimeout = Duration(seconds: 60);
 }

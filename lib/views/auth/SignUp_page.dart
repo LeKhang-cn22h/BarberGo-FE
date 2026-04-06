@@ -16,7 +16,7 @@ class SignupPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => SignUpViewModel(),
-      // ⭐ QUAN TRỌNG: Dùng builder để có context mới
+      //  QUAN TRỌNG: Dùng builder để có context mới
       builder: (context, child) {
         return _SignupPageContent();
       },
@@ -24,27 +24,26 @@ class SignupPage extends StatelessWidget {
   }
 }
 
-// ⭐ TÁCH RIÊNG CONTENT RA
+// TÁCH RIÊNG CONTENT RA
 class _SignupPageContent extends StatelessWidget {
 
   // ==================== REGISTER HANDLER ====================
 
   Future<void> _handleRegister(BuildContext context) async {
-    // ✅ BÂY GIỜ CONTEXT NÀY ĐÃ CÓ ACCESS ĐẾN SignUpViewModel
     final signUpVM = context.read<SignUpViewModel>();
     final authVM = context.read<AuthViewModel>();
 
     // Validate
-    print('🔵 Starting validation...');
+    print(' Starting validation...');
     final validationPassed = await signUpVM.signUp();
 
     if (!validationPassed) {
-      print('❌ Validation failed');
+      print(' Validation failed');
       return;
     }
 
     // Call register
-    print('🔵 Calling AuthViewModel.register()...');
+    print(' Calling AuthViewModel.register()...');
 
     final success = await authVM.register(
       email: signUpVM.emailController.text.trim(),
@@ -55,7 +54,7 @@ class _SignupPageContent extends StatelessWidget {
 
     // Handle result
     if (success && context.mounted) {
-      print('✅ Registration successful');
+      print(' Registration successful');
 
       // Show success dialog
       showDialog(
@@ -101,7 +100,7 @@ class _SignupPageContent extends StatelessWidget {
         ),
       );
     } else {
-      print('❌ Registration failed');
+      print('Registration failed');
     }
   }
 
@@ -308,7 +307,7 @@ class _SignupPageContent extends StatelessWidget {
                                   textError: signUpVM.confirmPasswordError,
                                 ),
 
-                                // ⭐ ERROR FROM AUTH VIEWMODEL
+                                //  ERROR FROM AUTH VIEWMODEL
                                 if (authVM.errorMessage != null)
                                   Padding(
                                     padding: const EdgeInsets.only(top: 16),

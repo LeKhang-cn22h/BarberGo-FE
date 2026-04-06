@@ -1,5 +1,3 @@
-// lib/views/ownerHistory/widgets/booking_statistics_card.dart
-
 import 'package:flutter/material.dart';
 
 class BookingStatisticsCard extends StatelessWidget {

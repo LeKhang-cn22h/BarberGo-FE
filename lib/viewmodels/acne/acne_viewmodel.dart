@@ -1,8 +1,7 @@
-// viewmodels/acne_viewmodel.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../models/acne/acne_response.dart';
-import '../services/acne_service.dart';
+import '../../models/acne/acne_response.dart';
+import '../../services/acne_service.dart';
 
 class AcneViewModel extends ChangeNotifier {
   final AcneService _service = AcneService();
@@ -47,7 +46,7 @@ class AcneViewModel extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
 
-    print('✅ Ảnh đã được chụp: ${image.path}');
+    print('Ảnh đã được chụp: ${image.path}');
   }
 
   /// Clear captured image
@@ -57,7 +56,7 @@ class AcneViewModel extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
 
-    print('🗑️ Đã xóa ảnh');
+    print(' Đã xóa ảnh');
   }
 
   /// Detect acne from captured image
@@ -74,13 +73,13 @@ class AcneViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      print('🔍 Bắt đầu phân tích mụn...');
+      print('Bắt đầu phân tích mụn...');
       print('   Image path: ${capturedImage!.path}');
 
       // Call API
       response = await _service.detectAcne(capturedImage!);
 
-      print('✅ Phân tích hoàn tất!');
+      print('Phân tích hoàn tất!');
       print('   Regions analyzed: ${response?.data?.summary?.totalRegions}');
       print('   Acne regions: ${response?.data?.summary?.acneRegions}');
       print('   Overall severity: ${response?.data?.summary?.overallSeverity}');
@@ -88,7 +87,7 @@ class AcneViewModel extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
     } catch (e) {
-      print('❌ Lỗi phân tích: $e');
+      print('Lỗi phân tích: $e');
 
       errorMessage = _parseError(e);
       isLoading = false;
@@ -125,7 +124,7 @@ class AcneViewModel extends ChangeNotifier {
     isLoading = false;
     notifyListeners();
 
-    print('🔄 ViewModel đã được reset');
+    print('ViewModel đã được reset');
   }
 
   /// Retry detection
@@ -133,11 +132,5 @@ class AcneViewModel extends ChangeNotifier {
     if (capturedImage != null) {
       await detect();
     }
-  }
-
-  @override
-  void dispose() {
-    // Clean up if needed
-    super.dispose();
   }
 }

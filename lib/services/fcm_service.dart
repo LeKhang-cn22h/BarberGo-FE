@@ -32,7 +32,8 @@ class FcmService {
     try {
       await _supabase.from('users').update({
         'fcm_token': token,
-      }).eq('id', userId);
+      }).eq('id', userId)
+          .select();
       print(' Đã lưu FCM Token lên Supabase');
     } catch (e) {
       print(' Lỗi lưu token: $e');

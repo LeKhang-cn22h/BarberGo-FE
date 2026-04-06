@@ -39,7 +39,6 @@ class _SigninPageContent extends StatelessWidget {
 
     // Validate
     final validationPassed = await signInVM.signIn();
-    await FcmService().initNotification();
     if (!validationPassed) {
       print(' Validation failed');
       return;
@@ -55,7 +54,7 @@ class _SigninPageContent extends StatelessWidget {
 
     // Navigate if success
     if (success && mounted) {
-
+      await FcmService().initNotification();
       // 1. Lấy role vừa lưu trong máy ra
       final role = await AuthStorage.getUserRole();
       print('Login successful. Role detected: $role');
@@ -239,7 +238,7 @@ class _SigninPageContent extends StatelessWidget {
                                     textError: signInVM.passwordError,
                                   ),
 
-                                  // ⭐ ERROR FROM AUTH VIEWMODEL
+                                  // ERROR FROM AUTH VIEWMODEL
                                   if (authVM.errorMessage != null)
                                     Padding(
                                       padding: const EdgeInsets.only(top: 16),

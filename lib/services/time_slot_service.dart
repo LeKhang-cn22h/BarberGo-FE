@@ -133,8 +133,11 @@ class TimeSlotService {
       ) async {
     try {
       return await _timeSlotApi.bulkCreateTimeSlots(request);
+    } on TimeSlotException
+    {
+      rethrow;
     } catch (e) {
       print('TimeSlotService - bulkCreateTimeSlots error: $e');
-      rethrow;
+      throw TimeSlotException('Lỗi khi tạo time slots');
     }
   }}

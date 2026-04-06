@@ -1,4 +1,3 @@
-// ✅ UPDATE acne_storage_service.dart - LƯU JSON_PATH
 
 import 'dart:convert';
 import 'dart:io';
@@ -16,7 +15,7 @@ class AcneStorageService {
     required File image,
   }) async {
     try {
-      print('📦 [STORAGE] Starting save...');
+      print(' [STORAGE] Starting save...');
 
       // Lấy thư mục Documents
       final directory = await getApplicationDocumentsDirectory();
@@ -29,7 +28,7 @@ class AcneStorageService {
 
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
 
-      // ✅ 1. LƯU ẢNH
+      //  1. LƯU ẢNH
       final imageFolder = Directory('${directory.path}/acne_images');
       if (!await imageFolder.exists()) {
         await imageFolder.create(recursive: true);
@@ -37,16 +36,16 @@ class AcneStorageService {
 
       final imagePath = '${imageFolder.path}/acne_$timestamp.jpg';
       await image.copy(imagePath);
-      print('✅ [STORAGE] Saved image: $imagePath');
+      print(' [STORAGE] Saved image: $imagePath');
 
-      // ✅ 2. LƯU JSON
+      // 2. LƯU JSON
       final jsonPath = '${acneFolder.path}/acne_result_$timestamp.json';
 
-      // ✅ Tạo dữ liệu để lưu (BAO GỒM json_path)
+      //  Tạo dữ liệu để lưu (BAO GỒM json_path)
       final data = {
         'timestamp': DateTime.now().toIso8601String(),
-        'image_path': imagePath,     // ✅ Path đến ảnh
-        'json_path': jsonPath,        // ✅ Path đến chính file JSON này
+        'image_path': imagePath,     // Path đến ảnh
+        'json_path': jsonPath,        // Path đến chính file JSON này
         'result': response.toJson(),  // Kết quả phân tích
       };
 
@@ -56,14 +55,14 @@ class AcneStorageService {
         const JsonEncoder.withIndent('  ').convert(data),
       );
 
-      print('✅ [STORAGE] Saved JSON: $jsonPath');
+      print(' [STORAGE] Saved JSON: $jsonPath');
       print('   - Image: $imagePath');
       print('   - JSON: $jsonPath');
 
       return jsonPath;
 
     } catch (e) {
-      print('❌ [STORAGE] Error saving JSON: $e');
+      print(' [STORAGE] Error saving JSON: $e');
       rethrow;
     }
   }
@@ -86,11 +85,11 @@ class AcneStorageService {
       // Copy ảnh
       await image.copy(imagePath);
 
-      print('✅ [STORAGE] Saved image: $imagePath');
+      print(' [STORAGE] Saved image: $imagePath');
       return imagePath;
 
     } catch (e) {
-      print('❌ [STORAGE] Error saving image: $e');
+      print(' [STORAGE] Error saving image: $e');
       rethrow;
     }
   }
@@ -100,7 +99,7 @@ class AcneStorageService {
   /// Đọc tất cả kết quả đã lưu
   static Future<List<Map<String, dynamic>>> getAllResults() async {
     try {
-      print('📂 [STORAGE] Loading all results...');
+      print(' [STORAGE] Loading all results...');
 
       final directory = await getApplicationDocumentsDirectory();
       final acneFolder = Directory('${directory.path}/acne_results');
@@ -128,7 +127,7 @@ class AcneStorageService {
           final content = await file.readAsString();
           final data = jsonDecode(content) as Map<String, dynamic>;
 
-          // ✅ Đảm bảo có json_path
+          //  Đảm bảo có json_path
           if (!data.containsKey('json_path')) {
             data['json_path'] = file.path;
           }
@@ -136,15 +135,15 @@ class AcneStorageService {
           results.add(data);
           print('   Loaded: ${file.path}');
         } catch (e) {
-          print('⚠️  Error reading file: ${file.path} - $e');
+          print(' Error reading file: ${file.path} - $e');
         }
       }
 
-      print('✅ [STORAGE] Loaded ${results.length} results');
+      print('[STORAGE] Loaded ${results.length} results');
       return results;
 
     } catch (e) {
-      print('❌ [STORAGE] Error reading results: $e');
+      print(' [STORAGE] Error reading results: $e');
       return [];
     }
   }
@@ -157,12 +156,12 @@ class AcneStorageService {
       final file = File(jsonPath);
       if (await file.exists()) {
         await file.delete();
-        print('✅ [STORAGE] Deleted: $jsonPath');
+        print(' [STORAGE] Deleted: $jsonPath');
         return true;
       }
       return false;
     } catch (e) {
-      print('❌ [STORAGE] Error deleting: $e');
+      print(' [STORAGE] Error deleting: $e');
       return false;
     }
   }
@@ -193,11 +192,11 @@ class AcneStorageService {
         }
       }
 
-      print('✅ [STORAGE] Deleted $deletedCount old results');
+      print('[STORAGE] Deleted $deletedCount old results');
       return deletedCount;
 
     } catch (e) {
-      print('❌ [STORAGE] Error deleting old results: $e');
+      print(' [STORAGE] Error deleting old results: $e');
       return 0;
     }
   }
@@ -235,7 +234,7 @@ class AcneStorageService {
         buffer.writeln('  Mức độ: ${overall.severityText}');
         buffer.writeln('  Khuyến nghị: ${overall.recommendation}');
         if (overall.needDoctor) {
-          buffer.writeln('  ⚠️  Nên gặp bác sĩ da liễu');
+          buffer.writeln('   Nên gặp bác sĩ da liễu');
         }
         buffer.writeln();
       }
@@ -278,11 +277,11 @@ class AcneStorageService {
       final file = File(reportPath);
       await file.writeAsString(buffer.toString());
 
-      print('✅ [STORAGE] Saved text report: $reportPath');
+      print('[STORAGE] Saved text report: $reportPath');
       return reportPath;
 
     } catch (e) {
-      print('❌ [STORAGE] Error saving text report: $e');
+      print(' [STORAGE] Error saving text report: $e');
       rethrow;
     }
   }

@@ -128,7 +128,7 @@ class ServiceService {
   }
 // ==================== UPDATE SERVICE ====================
   Future<ServiceUpdateResponse> updateService(
-      String serviceId,
+      int serviceId,
       ServiceUpdateRequest request,
       ) async {
     try {

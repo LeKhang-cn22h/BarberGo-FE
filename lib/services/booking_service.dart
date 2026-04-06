@@ -4,7 +4,7 @@ import 'package:barbergofe/models/booking/booking_model.dart';
 class BookingService {
   final BookingApi _bookingApi = BookingApi();
 
-  // ==================== CREATE BOOKING ====================
+  //   CREATE BOOKING  
   Future<BookingCreateResponse> createBooking(BookingCreateRequest request) async {
     try {
       return await _bookingApi.createBooking(request);
@@ -14,7 +14,7 @@ class BookingService {
     }
   }
 
-  // ==================== GET USER BOOKINGS ====================
+  //   GET USER BOOKINGS  
   Future<GetAllBookingsResponse> getUserBookings(String userId) async {
     try {
       return await _bookingApi.getBookingsByUser(userId);
@@ -24,7 +24,7 @@ class BookingService {
     }
   }
 
-  // ==================== GET BOOKING BY ID ====================
+  //   GET BOOKING BY ID  
   Future<BookingModel> getBookingById(String bookingId) async {
     try {
       return await _bookingApi.getBookingById(bookingId);
@@ -34,9 +34,9 @@ class BookingService {
     }
   }
 
-  // ==================== UPDATE STATUS ====================
+  //   UPDATE STATUS  
   Future<BookingStatusUpdateResponse> updateBookingStatus(
-      String bookingId,
+      int bookingId,
       String status,
       ) async {
     try {
@@ -47,8 +47,8 @@ class BookingService {
     }
   }
 
-  // ==================== CANCEL BOOKING ====================
-  Future<BookingStatusUpdateResponse> cancelBooking(String bookingId) async {
+  // CANCEL BOOKING
+  Future<BookingStatusUpdateResponse> cancelBooking(int bookingId) async {
     try {
       return await _bookingApi.cancelBooking(bookingId);
     } catch (e) {
@@ -56,8 +56,17 @@ class BookingService {
       rethrow;
     }
   }
+  //Boom Booking
+  Future<BookingStatusUpdateResponse> boomBooking(int bookingId) async {
+    try {
+      return await _bookingApi.boomBooking(bookingId);
+    } catch (e) {
+      print('BookingService - boomBooking error: $e');
+      rethrow;
+    }
+  }
 
-  // ==================== HELPER METHODS ====================
+  //   HELPER METHODS  
 
   List<BookingModel> filterByStatus(List<BookingModel> bookings, String status) {
     return bookings.where((booking) =>
@@ -135,23 +144,8 @@ class BookingService {
 
   // Check if booking can be cancelled
   bool canCancelBooking(BookingModel booking) {
-    if (booking.status.toLowerCase() != 'confirmed') return false;
-
-    if (booking.timeSlots == null) return true;
-
-    final slotDateStr = booking.timeSlots!['slot_date']?.toString();
-    if (slotDateStr == null) return true;
-
-    try {
-      final slotDate = DateTime.parse(slotDateStr);
-      final now = DateTime.now();
-      final difference = slotDate.difference(now);
-      return difference.inHours > 2; // Cho phép hủy trước 2 giờ
-    } catch (e) {
-      return true;
-    }
+    return booking.canCancel;
   }
-
   Future<GetAllBookingsResponse> getBarberBookings(String barberId) async {
     try {
       return await _bookingApi.getBookingsByBarber(barberId);

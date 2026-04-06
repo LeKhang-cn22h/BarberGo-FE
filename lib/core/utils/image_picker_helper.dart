@@ -9,13 +9,13 @@ class ImagePickerHelper {
   // ==================== PICK FROM GALLERY ====================
 
   static Future<File?> pickFromGallery(BuildContext context) async {
-    print('🔵 [IMAGE PICKER] Pick from gallery');
+    print('[IMAGE PICKER] Pick from gallery');
 
     // Request permission first
     final hasPermission = await PermissionHelper.requestPhotoLibraryPermission(context);
 
     if (!hasPermission) {
-      print('❌ [IMAGE PICKER] Permission denied');
+      print(' [IMAGE PICKER] Permission denied');
       return null;
     }
 
@@ -29,17 +29,17 @@ class ImagePickerHelper {
       );
 
       if (image == null) {
-        print('ℹ️ [IMAGE PICKER] No image selected');
+        print('ℹ [IMAGE PICKER] No image selected');
         return null;
       }
 
-      print('✅ [IMAGE PICKER] Image selected: ${image.path}');
+      print(' [IMAGE PICKER] Image selected: ${image.path}');
 
       // Return file directly (no crop)
       return File(image.path);
 
     } catch (e) {
-      print('❌ [IMAGE PICKER] Error: $e');
+      print(' [IMAGE PICKER] Error: $e');
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -55,13 +55,13 @@ class ImagePickerHelper {
   // ==================== PICK FROM CAMERA (Optional) ====================
 
   static Future<File?> pickFromCamera(BuildContext context) async {
-    print('🔵 [IMAGE PICKER] Pick from camera');
+    print(' [IMAGE PICKER] Pick from camera');
 
     // Request permission
     final hasPermission = await PermissionHelper.requestCameraPermission(context);
 
     if (!hasPermission) {
-      print('❌ [IMAGE PICKER] Camera permission denied');
+      print(' [IMAGE PICKER] Camera permission denied');
       return null;
     }
 
@@ -74,17 +74,17 @@ class ImagePickerHelper {
       );
 
       if (image == null) {
-        print('ℹ️ [IMAGE PICKER] No image captured');
+        print(' [IMAGE PICKER] No image captured');
         return null;
       }
 
-      print('✅ [IMAGE PICKER] Image captured: ${image.path}');
+      print(' [IMAGE PICKER] Image captured: ${image.path}');
 
       // Return file directly (no crop)
       return File(image.path);
 
     } catch (e) {
-      print('❌ [IMAGE PICKER] Error: $e');
+      print('[IMAGE PICKER] Error: $e');
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -110,7 +110,7 @@ class ImagePickerHelper {
         'height': decodedImage.height,
       };
     } catch (e) {
-      print('❌ [IMAGE PICKER] Get size error: $e');
+      print(' [IMAGE PICKER] Get size error: $e');
       return null;
     }
   }

@@ -1,3 +1,4 @@
+import 'package:barbergofe/api/booking_api.dart';
 import 'package:barbergofe/models/service/service_model.dart';
 import 'package:barbergofe/viewmodels/service/service_viewmodel.dart';
 import 'package:barbergofe/views/booking/widgets/barber_selection_sheet.dart';
@@ -169,7 +170,20 @@ class _BookingPageState extends State<BookingPage> {
           _showSuccessDialog(bookingResponse);
         }
       }
-    } catch (e) {
+    } on BookingException catch (e) {
+      // Lỗi validation từ backend (quá khứ, đã đặt, etc.)
+      print('❌ Booking validation error: ${e.message}');
+
+      if (mounted) {
+        _showErrorDialog(
+          title: 'Không thể đặt lịch',
+          message: e.message,
+          icon: Icons.event_busy,
+          iconColor: Colors.orange,
+        );
+      }
+
+    }catch (e) {
       // Bắt lỗi khi gọi API thất bại
       print('Error creating booking: $e');
       if (mounted) {
@@ -190,8 +204,7 @@ class _BookingPageState extends State<BookingPage> {
 
     showDialog(
       context: context,
-      barrierDismissible: false, // Không cho bấm ra ngoài để tắt
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           // ... (Phần UI hiển thị thông tin thành công) ...
           title: Row(
@@ -232,13 +245,10 @@ class _BookingPageState extends State<BookingPage> {
           actions: [
             // Nút OK -> Về trang chủ
             TextButton(
-              onPressed: () => context.goNamed('home'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                context.goNamed('home');},
               child: Text('OK'),
-            ),
-            // Nút Chi tiết -> Về trang chủ (có thể sửa lại để đi đến trang chi tiết đơn hàng)
-            ElevatedButton(
-              onPressed: () => context.goNamed("home"),
-              child: Text('Xem chi tiết'),
             ),
           ],
         );
@@ -668,5 +678,106 @@ class _BookingPageState extends State<BookingPage> {
         ],
       ),
     );
+  }
+
+  void _showErrorDialog({
+    required String title,
+    required String message,
+    required IconData icon,
+    required Color iconColor,
+  }) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(icon, color: iconColor, size: 28),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(fontSize: 18),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                message,
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+
+              // Gợi ý hành động
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue[200]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.lightbulb_outline, color: Colors.blue[700], size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Vui lòng chọn khung giờ khác hoặc thử lại sau.',
+                        style: TextStyle(fontSize: 13, color: Colors.blue[900]),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Đóng'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                // Refresh time slots
+                _refreshTimeSlots();
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Chọn lại giờ'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  Future<void> _refreshTimeSlots() async {
+    final bookingViewModel = context.read<BookingViewModel>();
+    setState(() => _isLoading = true);
+
+    try {
+      await bookingViewModel.fetchAvailableTimeSlots();
+
+      if (mounted) {
+        // Tự động mở time slot selection
+        _showTimeSlotSelection(bookingViewModel);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi tải giờ: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 }

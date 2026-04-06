@@ -252,6 +252,7 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
   }
 
   void _showBookingDetails(BookingModel booking, BookingHistoryViewModel viewModel) {
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -271,9 +272,12 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
   }
 
   void _showCancelDialog(BookingModel booking, BookingHistoryViewModel viewModel) {
+    // Lưu ScaffoldMessenger trước khi vào dialog
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Row(
             children: [
@@ -319,60 +323,35 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Không'),
             ),
             ElevatedButton(
               onPressed: () async {
-                Navigator.pop(context); // Đóng dialog
+                // Đóng dialog TRƯỚC
+                Navigator.pop(dialogContext);
 
-                // Hiển thị loading indicator
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) => const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-
+                // Gọi API hủy booking
                 try {
-                  // Gọi API hủy booking
-                  await viewModel.cancelBooking(booking.id.toString());
-
-                  // Đóng loading indicator
-                  if (mounted) {
-                    Navigator.pop(context);
-                  }
-
-                  // ✅ QUAN TRỌNG: Fetch lại danh sách bookings
+                  await viewModel.cancelBooking(booking.id);
                   await viewModel.refreshUserBookings();
 
-                  // Hiển thị thông báo thành công
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('✅ Đã hủy đơn đặt thành công'),
-                        backgroundColor: Colors.green,
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  }
+                  // Dùng scaffoldMessenger đã lưu
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Đã hủy đơn đặt thành công'),
+                      backgroundColor: Colors.green,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
                 } catch (e) {
-                  // Đóng loading indicator
-                  if (mounted) {
-                    Navigator.pop(context);
-                  }
-
-                  // Hiển thị lỗi
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('❌ Lỗi: $e'),
-                        backgroundColor: Colors.red,
-                        duration: const Duration(seconds: 3),
-                      ),
-                    );
-                  }
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text('Lỗi: $e'),
+                      backgroundColor: Colors.red,
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
                 }
               },
               style: ElevatedButton.styleFrom(

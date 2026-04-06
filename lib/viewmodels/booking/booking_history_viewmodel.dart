@@ -127,7 +127,7 @@ class BookingHistoryViewModel extends ChangeNotifier {
 
   // ==================== BOOKING ACTIONS ====================
 
-  Future<void> cancelBooking(String bookingId) async {
+  Future<void> cancelBooking(int bookingId) async {
     _setLoading(true);
     _error = null;
 
@@ -151,7 +151,7 @@ class BookingHistoryViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> updateBookingStatus(String bookingId, String status) async {
+  Future<void> updateBookingStatus(int bookingId, String status) async {
     _setLoading(true);
     _error = null;
 

@@ -1,12 +1,15 @@
 import 'dart:io';
 import 'package:barbergofe/services/camera_service.dart';
+import 'package:barbergofe/views/acne/widgets/camera/camera_preview_widget.dart';
+import 'package:barbergofe/views/hair/%20widgets/camera/camera_controls.dart';
+import 'package:barbergofe/views/hair/%20widgets/camera/camera_instructions.dart';
+import 'package:barbergofe/views/hair/%20widgets/camera/camera_tips_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'style_selection_screen.dart';
-
 class CameraScreen extends StatefulWidget {
   @override
   _CameraScreenState createState() => _CameraScreenState();
@@ -81,11 +84,7 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
       final imageFile = await _cameraService.takePicture();
 
       if (imageFile != null) {
-        setState(() {
-          _capturedImage = imageFile;
-        });
-
-        // Show loading animation
+        setState(() => _capturedImage = imageFile);
         await Future.delayed(Duration(milliseconds: 300));
 
         Navigator.push(
@@ -95,7 +94,6 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
           ),
         );
 
-        // Reset for next capture
         Future.delayed(Duration(milliseconds: 100), () {
           if (mounted) {
             setState(() {
@@ -124,16 +122,12 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
 
   Future<void> _switchCamera() async {
     await _cameraService.switchCamera();
-    setState(() {
-      _isFrontCamera = !_isFrontCamera;
-    });
+    setState(() => _isFrontCamera = !_isFrontCamera);
   }
 
   Future<void> _toggleFlash() async {
     await _cameraService.toggleFlash();
-    setState(() {
-      _isFlashOn = !_isFlashOn;
-    });
+    setState(() => _isFlashOn = !_isFlashOn);
   }
 
   Future<void> _pickImageFromGallery() async {
@@ -167,165 +161,7 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
   }
 
   void _showTipsDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Row(
-          children: [
-            Icon(Icons.lightbulb_outline, color: Colors.amber),
-            SizedBox(width: 8),
-            Text('💡 Hướng dẫn chụp ảnh'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _TipItem(icon: '✓', text: 'Gương mặt chiếm 70% khung hình'),
-            _TipItem(icon: '✓', text: 'Chụp ở nơi có ánh sáng tốt'),
-            _TipItem(icon: '✓', text: 'Nhìn thẳng vào camera'),
-            _TipItem(icon: '✓', text: 'Tóc gọn gàng để thấy rõ đường viền'),
-            _TipItem(icon: '✓', text: 'Không đội mũ hoặc che mặt'),
-            _TipItem(icon: '✓', text: 'Khoảng cách 30-50cm'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Đã hiểu'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCameraPreview() {
-    if (_cameraService.controller == null || !_cameraService.isInitialized) {
-      return Container(
-        color: Colors.black,
-        child: Center(
-          child: CircularProgressIndicator(color: Colors.white),
-        ),
-      );
-    }
-
-    return Container(
-      color: Colors.black,
-      child: Stack(
-        children: [
-          // ========== FIX: CAMERA PREVIEW FILL MÀN HÌNH ==========
-          Positioned.fill(
-            child: FittedBox(
-              fit: BoxFit.cover,
-              child: SizedBox(
-                width: _cameraService.controller!.value.previewSize!.height,
-                height: _cameraService.controller!.value.previewSize!.width,
-                child: CameraPreview(_cameraService.controller!),
-              ),
-            ),
-          ),
-
-          // Gradient overlay for better visibility
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.3),
-                    Colors.transparent,
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.4),
-                  ],
-                  stops: [0.0, 0.15, 0.75, 1.0],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCaptureButton() {
-    return Column(
-      children: [
-        // Main capture button
-        GestureDetector(
-          onTap: _isProcessing ? null : _takePicture,
-          child: Container(
-            width: _isProcessing ? 70 : 80,
-            height: _isProcessing ? 70 : 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: _isProcessing ? Colors.grey : Colors.white,
-              border: Border.all(
-                color: Colors.white,
-                width: _isProcessing ? 3 : 4,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 10,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: _isProcessing
-                ? Padding(
-              padding: EdgeInsets.all(20),
-              child: CircularProgressIndicator(
-                strokeWidth: 3,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-              ),
-            )
-                : Icon(
-              Icons.camera_alt,
-              size: 36,
-              color: Colors.black,
-            ),
-          ),
-        ),
-        SizedBox(height: 12),
-        // Label
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.6),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            _isProcessing ? 'Đang xử lý...' : 'Chụp ảnh',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSideButton(IconData icon, String tooltip, VoidCallback onTap) {
-    return Container(
-      width: 56,
-      height: 56,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.black.withOpacity(0.5),
-        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
-      ),
-      child: IconButton(
-        icon: Icon(icon, color: Colors.white, size: 26),
-        onPressed: onTap,
-        tooltip: tooltip,
-      ),
-    );
+    showCameraTipsDialog(context);
   }
 
   Widget _buildPermissionDeniedView() {
@@ -387,20 +223,6 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
     );
   }
 
-  // Widget _buildFaceGuideCircle() {
-  //   return Container(
-  //     width: MediaQuery.of(context).size.width * 0.8,
-  //     height: MediaQuery.of(context).size.width * 0.9,
-  //     decoration: BoxDecoration(
-  //       shape: BoxShape.circle,
-  //       border: Border.all(
-  //         color: Colors.white.withOpacity(0.6),
-  //         width: 3,
-  //       ),
-  //     ),
-  //   );
-  // }
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -454,163 +276,27 @@ class _CameraScreenState extends State<CameraScreen> with WidgetsBindingObserver
       ),
       body: Stack(
         children: [
-          // ==================== CAMERA PREVIEW ====================
+          // Camera Preview
           Positioned.fill(
-            child: _buildCameraPreview(),
+            child: CameraPreviewWidget(controller: _cameraService.controller!),
           ),
 
-          // ==================== FACE GUIDE CIRCLE ====================
-          // Center(
-          //   child: _buildFaceGuideCircle(),
-          // ),
+          // Instructions
+          CameraInstructions(),
 
-          // ==================== INSTRUCTIONS ====================
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 80,
-            left: 0,
-            right: 0,
-            child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 24),
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.6),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    'Đặt mặt vào khung hình',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Chụp chính diện • Ánh sáng tốt • Mặt rõ ràng',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
-                      fontSize: 13,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
+          // Controls
+          CameraControls(
+            isProcessing: _isProcessing,
+            isFrontCamera: _isFrontCamera,
+            isFlashOn: _isFlashOn,
+            capturedImage: _capturedImage,
+            onTakePicture: _takePicture,
+            onPickFromGallery: _pickImageFromGallery,
+            onSwitchCamera: _switchCamera,
+            onToggleFlash: _toggleFlash,
           ),
-
-          // ==================== GALLERY BUTTON (LEFT) ====================
-          Positioned(
-            bottom: 40,
-            left: 30,
-            child: _buildSideButton(
-              Icons.photo_library,
-              'Chọn từ thư viện',
-              _pickImageFromGallery,
-            ),
-          ),
-
-          // ==================== CAPTURE BUTTON (CENTER) ====================
-          Positioned(
-            bottom: 40,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: _buildCaptureButton(),
-            ),
-          ),
-
-          // ==================== CAMERA CONTROLS (RIGHT) ====================
-          Positioned(
-            bottom: 40,
-            right: 30,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Flash button
-                _buildSideButton(
-                  _isFlashOn ? Icons.flash_on : Icons.flash_off,
-                  _isFlashOn ? 'Tắt đèn flash' : 'Bật đèn flash',
-                  _toggleFlash,
-                ),
-                SizedBox(height: 20),
-                // Switch camera button
-                _buildSideButton(
-                  _isFrontCamera ? Icons.camera_front : Icons.camera_rear,
-                  'Đổi camera',
-                  _switchCamera,
-                ),
-              ],
-            ),
-          ),
-
-          // ==================== CAPTURED IMAGE PREVIEW ====================
-          if (_capturedImage != null)
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 20,
-              right: 16,
-              child: Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.green, width: 2),
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.5),
-                      blurRadius: 10,
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: Image.file(
-                    _capturedImage!,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            ),
         ],
       ),
     );
   }
-}
-
-class _TipItem extends StatelessWidget {
-  final String icon;
-  final String text;
-
-  const _TipItem({
-    required this.icon,
-    required this.text,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              icon,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.green,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                text,
-                style: TextStyle(fontSize: 14),
-              ),
-            ),
-          ],
-        ));
-    }
 }

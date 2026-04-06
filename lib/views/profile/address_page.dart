@@ -25,7 +25,7 @@ class _AddressPageState extends State<AddressPage> {
         _selectedAddress = result['address'];
       });
 
-      print('✅ Location selected:');
+      print(' Location selected:');
       print('   Address: $_selectedAddress');
       print('   Lat: $_latitude, Lng: $_longitude');
     }

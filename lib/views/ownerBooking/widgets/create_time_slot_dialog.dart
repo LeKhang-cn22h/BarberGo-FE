@@ -355,7 +355,8 @@ class _CreateTimeSlotDialogState extends State<CreateTimeSlotDialog> {
     }
   }
 
-  void _handleCreate() {
+  void _handleCreate() async {
+    // 1. Kiểm tra đã chọn giờ chưa
     if (_startTime == null) {
       _showError('Vui lòng chọn giờ bắt đầu');
       return;
@@ -366,7 +367,8 @@ class _CreateTimeSlotDialogState extends State<CreateTimeSlotDialog> {
       return;
     }
 
-    // Kiểm tra giờ kết thúc phải sau giờ bắt đầu
+    // 2. Tạo DateTime đầy đủ
+    final now = DateTime.now();
     final start = DateTime(
       _selectedDate.year,
       _selectedDate.month,
@@ -383,9 +385,50 @@ class _CreateTimeSlotDialogState extends State<CreateTimeSlotDialog> {
       _endTime!.minute,
     );
 
+    //  3. Kiểm tra giờ kết thúc phải sau giờ bắt đầu
     if (end.isBefore(start) || end.isAtSameMomentAs(start)) {
       _showError('Giờ kết thúc phải sau giờ bắt đầu');
       return;
+    }
+
+    //  4. Kiểm tra duration tối thiểu (ví dụ: 15 phút)
+    final duration = end.difference(start);
+    if (duration.inMinutes < 15) {
+      _showError('Thời gian slot phải ít nhất 15 phút');
+      return;
+    }
+
+    //  5. Kiểm tra không được tạo slot trong quá khứ
+    final isToday = _selectedDate.year == now.year &&
+        _selectedDate.month == now.month &&
+        _selectedDate.day == now.day;
+
+    if (isToday) {
+      // Nếu là hôm nay, kiểm tra giờ bắt đầu phải sau giờ hiện tại
+      if (start.isBefore(now) || start.isAtSameMomentAs(now)) {
+        _showError(
+            'Không thể tạo khung giờ trong quá khứ. '
+                'Hiện tại là ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}'
+        );
+        return;
+      }
+
+      final buffer = now.add(const Duration(minutes: 10));
+      if (start.isBefore(buffer)) {
+        _showError(
+            'Vui lòng chọn giờ ít nhất 15 phút sau hiện tại để có thời gian chuẩn bị'
+        );
+        return;
+      }
+    }
+
+    //  6. (Optional) Kiểm tra giờ làm việc hợp lý (8h-22h)
+    if (_startTime!.hour < 6 || _endTime!.hour > 23) {
+      final confirm = await _showConfirmDialog(
+        'Giờ làm việc bất thường',
+        'Bạn đang tạo khung giờ ngoài giờ làm việc thông thường (6h-23h). Tiếp tục?',
+      );
+      if (confirm != true) return;
     }
 
     // Tạo request
@@ -401,10 +444,23 @@ class _CreateTimeSlotDialogState extends State<CreateTimeSlotDialog> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.error_outline, color: Colors.red.shade700),
+            const SizedBox(width: 12),
+            const Text('Lỗi'),
+          ],
+        ),
         content: Text(message),
-        backgroundColor: Colors.red,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Đã hiểu'),
+          ),
+        ],
       ),
     );
   }
@@ -423,5 +479,25 @@ class _CreateTimeSlotDialogState extends State<CreateTimeSlotDialog> {
 
   String _formatTimeToString(TimeOfDay time) {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:00';
+  }
+
+  Future<bool?> _showConfirmDialog(String title, String message) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Tiếp tục'),
+          ),
+        ],
+      ),
+    );
   }
 }

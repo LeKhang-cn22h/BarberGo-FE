@@ -259,17 +259,4 @@ class _ServiceSelectionPageState extends State<ServiceSelectionPage> {
     Navigator.pop(context);
   }
 
-  // Tính tổng giá
-  int _calculateTotalPrice(ServiceViewModel serviceViewModel) {
-    return serviceViewModel.barberServices
-        .where((service) => _selectedServiceIds.contains(service.id))
-        .fold(0, (sum, service) => sum + service.price);
-  }
-
-  // Tính tổng thời gian
-  int _calculateTotalDuration(ServiceViewModel serviceViewModel) {
-    return serviceViewModel.barberServices
-        .where((service) => _selectedServiceIds.contains(service.id))
-        .fold(0, (sum, service) => sum + service.durationMin);
-  }
 }

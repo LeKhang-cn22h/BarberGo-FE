@@ -1,4 +1,3 @@
-// lib/services/api/appointment_api.dart
 import 'dart:convert';
 import 'package:barbergofe/api/endpoints/appointment_endpoint.dart';
 

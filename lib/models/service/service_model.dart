@@ -15,12 +15,35 @@ class ServiceModel {
   });
 
   factory ServiceModel.fromJson(Map<String, dynamic> json) {
+    int parseId(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
+    int parsePrice(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is double) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
+    int parseDuration(dynamic value) {
+      if (value == null) return 0;
+      if (value is int) return value;
+      if (value is double) return value.toInt();
+      if (value is String) return int.tryParse(value) ?? 0;
+      return 0;
+    }
+
     return ServiceModel(
-      id: json['id'] ?? 0,
+      id: parseId(json['id']),
       barberId: json['barber_id']?.toString() ?? '',
-      serviceName: json['service_name'] ?? '',
-      price: json['price'] ?? 0,
-      durationMin: json['duration_min'] ?? 0,
+      serviceName: json['service_name']?.toString() ?? '',
+      price: parsePrice(json['price']),
+      durationMin: parseDuration(json['duration_min']),
     );
   }
 

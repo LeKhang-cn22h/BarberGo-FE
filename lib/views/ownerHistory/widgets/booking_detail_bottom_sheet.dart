@@ -1,5 +1,3 @@
-// lib/views/ownerHistory/widgets/booking_detail_bottom_sheet.dart
-
 import 'package:flutter/material.dart';
 import 'package:barbergofe/models/booking/booking_model.dart';
 
@@ -7,12 +5,14 @@ class BookingDetailBottomSheet extends StatelessWidget {
   final BookingModel booking;
   final bool isOwnerView;
   final Function(String)? onStatusChanged;
+  final Function()? onNoShow;
 
   const BookingDetailBottomSheet({
     super.key,
     required this.booking,
     this.isOwnerView = false,
     this.onStatusChanged,
+    this.onNoShow,
   });
 
   @override
@@ -497,6 +497,21 @@ class BookingDetailBottomSheet extends StatelessWidget {
             ),
           ),
         ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () {
+              _showNoShowConfirmDialog(context);
+            },
+            icon: const Icon(Icons.no_accounts, size: 20),
+            label: const Text('Hủy Khách'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.orange,
+              side: const BorderSide(color: Colors.orange),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -563,5 +578,50 @@ class BookingDetailBottomSheet extends StatelessWidget {
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (Match m) => '${m[1]}.',
     )}đ';
+  }
+
+  void _showNoShowConfirmDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+            SizedBox(width: 12),
+            Text('Khách không đến'),
+          ],
+        ),
+        content: const Text(
+          'Xác nhận khách hàng không đến?\n\n'
+              'Hành động này sẽ:\n'
+              '• Hủy booking với lý do khách không đến\n'
+              '• Ghi nhận thời gian hủy\n',
+          style: TextStyle(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              //  GỌI CALLBACK onNoShow
+              if (onNoShow != null) {
+                onNoShow!();
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Xác nhận'),
+          ),
+        ],
+      ),
+    );
   }
 }

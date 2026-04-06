@@ -76,7 +76,6 @@ class BookingDetailSheet extends StatelessWidget {
                   // Booking info
                   _buildInfoSection('Thông tin đơn đặt', [
                     _buildInfoItem('Mã đơn', '#${booking.id}'),
-                    // ⚠️ SỬA: Dùng formattedDate (đã lấy từ timeSlots.slot_date)
                     _buildInfoItem('Ngày đặt', booking.formattedDate),
                     if (booking.createdAt != null)
                       _buildInfoItem(
@@ -88,11 +87,8 @@ class BookingDetailSheet extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Barber info
-                  // ⚠️ SỬA: Barber nằm trong timeSlots.barbers
                   _buildInfoSection('Tiệm tóc', [
-                    // ⚠️ SỬA: Dùng getter barberName
                     _buildInfoItem('Tên tiệm', booking.barberName),
-                    // ⚠️ SỬA: Dùng getter barberAddress
                     if (booking.barberAddress.isNotEmpty)
                       _buildInfoItem('Địa chỉ', booking.barberAddress),
                   ]),
@@ -100,11 +96,8 @@ class BookingDetailSheet extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Time slot
-                  // ⚠️ SỬA: timeSlots thay vì timeSlot
                   _buildInfoSection('Thời gian', [
-                    // ⚠️ SỬA: Dùng getter formattedTime
                     _buildInfoItem('Khung giờ', booking.formattedTime),
-                    // ⚠️ SỬA: Dùng getter formattedDate
                     if (booking.formattedDate.isNotEmpty)
                       _buildInfoItem('Ngày', booking.formattedDate),
                   ]),
@@ -127,7 +120,6 @@ class BookingDetailSheet extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                // ⚠️ SỬA: Format giá với dấu chấm
                                 _formatPrice(service['price']),
                                 style: const TextStyle(
                                   fontSize: 14,
@@ -157,6 +149,7 @@ class BookingDetailSheet extends StatelessWidget {
                       ],
                     ),
                   ),
+
                 ],
               ),
             ),
@@ -255,7 +248,6 @@ class BookingDetailSheet extends StatelessWidget {
     );
   }
 
-  // ⚠️ THÊM: Helper method format giá
   String _formatPrice(dynamic price) {
     if (price == null) return '0đ';
 

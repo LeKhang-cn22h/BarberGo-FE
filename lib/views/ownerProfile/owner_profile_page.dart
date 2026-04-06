@@ -1,3 +1,4 @@
+import 'package:barbergofe/core/globals.dart';
 import 'package:barbergofe/services/simple_notification_service.dart';
 import 'package:barbergofe/viewmodels/auth/auth_viewmodel.dart';
 import 'package:barbergofe/views/profile/widgets/profile_header.dart';
@@ -6,8 +7,23 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-class OwnerProfilePage extends StatelessWidget {
+class OwnerProfilePage extends StatefulWidget {
   const OwnerProfilePage({Key? key}) : super(key: key);
+
+  @override
+  State<OwnerProfilePage> createState() => _OwnerProfilePageState();
+}
+
+class _OwnerProfilePageState extends State<OwnerProfilePage> {
+  //  Lưu router ở state level
+  late final GoRouter _router;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    //  Lấy router 1 lần duy nhất khi widget được tạo
+    _router = GoRouter.of(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,17 +37,13 @@ class OwnerProfilePage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-
                   // ==================== PROFILE HEADER ====================
-
                   ProfileHeader(
                     name: user?.fullName ?? 'Người dùng',
                     avatarUrl: user?.avatarUrl,
                   ),
 
-
                   // ==================== MENU ITEMS ====================
-
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
@@ -45,7 +57,6 @@ class OwnerProfilePage extends StatelessWidget {
                           },
                         ),
 
-
                         const SizedBox(height: 12),
 
                         // Địa chỉ
@@ -53,7 +64,6 @@ class OwnerProfilePage extends StatelessWidget {
                           icon: Icons.location_on_outlined,
                           title: 'Bản đồ',
                           onTap: () {
-                            // context.pushNamed('location_picker');
                             context.pushNamed('Map');
                           },
                         ),
@@ -151,7 +161,7 @@ class OwnerProfilePage extends StatelessWidget {
   void _showLogoutDialog(BuildContext context, AuthViewModel authVM) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -159,29 +169,57 @@ class OwnerProfilePage extends StatelessWidget {
         content: const Text('Bạn có chắc chắn muốn đăng xuất không?'),
         actions: [
           TextButton(
-            onPressed: () => context.pop(),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Hủy'),
           ),
           TextButton(
             onPressed: () async {
-              context.pop();
+              Navigator.pop(dialogContext);
 
-              // Show loading
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) => const Center(
-                  child: CircularProgressIndicator(),
+              AppGlobals.scaffoldMessengerKey.currentState?.showSnackBar(
+                const SnackBar(
+                  content: Row(
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(width: 16),
+                      Text('Đang đăng xuất...'),
+                    ],
+                  ),
+                  duration: Duration(seconds: 10),
                 ),
               );
 
-              // Logout
-              await authVM.logout();
+              try {
+                print(' [OWNER LOGOUT] Starting logout...');
+                await authVM.logout();
+                print(' [OWNER LOGOUT] Logout completed');
 
-              // Navigate to login
-              if (context.mounted) {
-                context.pop(); // Close loading
-                context.goNamed('signin');
+                AppGlobals.scaffoldMessengerKey.currentState?.hideCurrentSnackBar();
+
+                // DÙNG _router ĐÃ LƯU Ở STATE - LUÔN HOẠT ĐỘNG
+                print(' [OWNER LOGOUT] Navigating with saved router...');
+                _router.goNamed('signin');
+                print('[OWNER LOGOUT] Navigation successful');
+
+              } catch (e) {
+                print(' [OWNER LOGOUT] Error: $e');
+
+                AppGlobals.scaffoldMessengerKey.currentState?.hideCurrentSnackBar();
+
+                AppGlobals.scaffoldMessengerKey.currentState?.showSnackBar(
+                  SnackBar(
+                    content: Text('Đăng xuất thất bại: $e'),
+                    backgroundColor: Colors.red,
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
               }
             },
             style: TextButton.styleFrom(
